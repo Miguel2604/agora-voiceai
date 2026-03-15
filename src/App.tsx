@@ -223,21 +223,21 @@ export default function App() {
             <div className="grid gap-3 sm:grid-cols-3">
               <ActionButton
                 busy={pendingAction === "seeding"}
-                onClick={handleEnsureDemoReady}
+                onClick={() => void handleEnsureDemoReady()}
                 tone="secondary"
               >
                 Seed agents
               </ActionButton>
               <ActionButton
                 busy={pendingAction === "resetting"}
-                onClick={handleResetDemo}
+                onClick={() => void handleResetDemo()}
                 tone="secondary"
               >
                 Reset demo
               </ActionButton>
               <ActionButton
                 busy={pendingAction === "starting"}
-                onClick={handleStartCall}
+                onClick={() => void handleStartCall()}
               >
                 Start call
               </ActionButton>
@@ -376,7 +376,7 @@ export default function App() {
                           </p>
                           <ActionButton
                             busy={pendingAction === "ending"}
-                            onClick={() => handleEndCall(call._id)}
+                            onClick={() => void handleEndCall(call._id)}
                           >
                             End call and create ticket
                           </ActionButton>
@@ -519,12 +519,10 @@ export default function App() {
                             <ActionButton
                               key={status}
                               busy={pendingAction === "updating"}
-                              onClick={() =>
-                                handleStatusChange(
-                                  selectedTicket.ticket._id,
-                                  status,
-                                )
-                              }
+                              onClick={() => void handleStatusChange(
+                                selectedTicket.ticket._id,
+                                status,
+                              )}
                               tone={
                                 selectedTicket.ticket.status === status
                                   ? "primary"
