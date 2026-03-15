@@ -173,18 +173,18 @@ export default function App() {
   return (
     <div className="min-h-screen px-4 py-6 text-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <header className="overflow-hidden rounded-[32px] border border-white/60 bg-white/80 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur">
+        <header className="overflow-hidden rounded-md border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
           <div className="grid gap-6 px-6 py-8 lg:grid-cols-[1.5fr_1fr] lg:px-8">
             <div className="space-y-4">
-              <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-amber-900">
+              <span className="inline-flex items-center rounded-sm border-2 border-black bg-[#f5ce4d] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black">
                 Neosolve demo backend
               </span>
               <div className="space-y-3">
-                <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+                <h1 className="max-w-3xl text-4xl font-black tracking-tight text-black sm:text-5xl">
                   Build the scripted support flow now, then plug Agora voice and
                   AI in tomorrow.
                 </h1>
-                <p className="max-w-3xl text-base leading-7 text-slate-600 sm:text-lg">
+                <p className="max-w-3xl text-base font-bold leading-7 text-slate-800 sm:text-lg">
                   This control room exercises the Convex backend with
                   deterministic intake scenarios, real-time ticket routing, and
                   per-agent queues.
@@ -192,7 +192,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="grid gap-3 rounded-[28px] bg-slate-950 p-5 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+            <div className="grid gap-3 rounded-md border-2 border-black bg-slate-900 p-5 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
               <MetricPanel
                 label="Active calls"
                 value={String(leadDashboard?.metrics.activeCalls ?? 0)}
@@ -213,7 +213,7 @@ export default function App() {
         </header>
 
         <div className="grid gap-6 xl:grid-cols-[1.05fr_1.45fr]">
-          <section className="space-y-6 rounded-[32px] border border-white/60 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur lg:p-7">
+          <section className="space-y-6 rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
             <SectionHeading
               eyebrow="Demo controls"
               title="Create scripted calls against the live backend"
@@ -322,7 +322,7 @@ export default function App() {
           </section>
 
           <section className="grid gap-6">
-            <div className="rounded-[32px] border border-white/60 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur lg:p-7">
+            <div className="rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
               <SectionHeading
                 eyebrow="Live operations"
                 title="Team lead dashboard"
@@ -441,7 +441,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="rounded-[32px] border border-white/60 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur lg:p-7">
+            <div className="rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
               <SectionHeading
                 eyebrow="Support lanes"
                 title="Per-agent dashboards"
@@ -467,7 +467,7 @@ export default function App() {
               </div>
             </div>
 
-            <div className="rounded-[32px] border border-white/60 bg-white/80 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.12)] backdrop-blur lg:p-7">
+            <div className="rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
               <SectionHeading
                 eyebrow="Ticket detail"
                 title="Inspect the exact intake payload stored in Convex"
@@ -653,14 +653,14 @@ function SectionHeading(props: {
   description: string;
 }) {
   return (
-    <div className="space-y-2">
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+    <div className="space-y-2 border-b-2 border-black pb-4 mb-4">
+      <p className="text-xs font-bold uppercase tracking-widest text-slate-900 font-mono">
         {props.eyebrow}
       </p>
-      <h2 className="text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
+      <h2 className="text-2xl font-black tracking-tight text-black sm:text-3xl">
         {props.title}
       </h2>
-      <p className="max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">
+      <p className="max-w-3xl text-sm font-medium text-slate-800 sm:text-base">
         {props.description}
       </p>
     </div>
@@ -702,19 +702,19 @@ function MetricPanel(props: {
   tone: "cyan" | "amber" | "rose";
 }) {
   const toneClassNames = {
-    cyan: "bg-cyan-400/15 text-cyan-50 border-cyan-300/20",
-    amber: "bg-amber-400/15 text-amber-50 border-amber-300/20",
-    rose: "bg-rose-400/15 text-rose-50 border-rose-300/20",
+    cyan: "bg-[#2a6de1] text-white", // Classic thick blue
+    amber: "bg-[#f5ce4d] text-black", // Neobrutalist yellow
+    rose: "bg-[#e03b24] text-white", // Hard red
   } as const;
 
   return (
     <div
-      className={`rounded-[24px] border px-4 py-4 ${toneClassNames[props.tone]}`}
+      className={`rounded-md border-2 border-black px-4 py-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${toneClassNames[props.tone]}`}
     >
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] opacity-80">
+      <p className="text-[10px] font-bold uppercase tracking-widest font-mono">
         {props.label}
       </p>
-      <p className="mt-3 text-3xl font-semibold">{props.value}</p>
+      <p className="mt-3 text-3xl font-bold font-mono">{props.value}</p>
     </div>
   );
 }
@@ -766,10 +766,10 @@ function EmptyState(props: { message: string; dark?: boolean }) {
   return (
     <div
       className={[
-        "rounded-[24px] border border-dashed px-4 py-6 text-sm leading-6",
+        "rounded-md border-2 border-dashed px-4 py-6 text-sm font-bold font-mono",
         props.dark
-          ? "border-white/15 bg-white/5 text-slate-300"
-          : "border-slate-200 bg-slate-50/70 text-slate-500",
+          ? "border-slate-500 bg-slate-900 text-slate-300"
+          : "border-black bg-slate-100 text-slate-500",
       ].join(" ")}
     >
       {props.message}
