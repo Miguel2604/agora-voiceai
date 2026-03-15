@@ -243,10 +243,10 @@ export default function App() {
               </ActionButton>
             </div>
 
-            <label className="grid gap-2 text-sm font-medium text-slate-700">
+            <label className="grid gap-2 text-sm font-bold text-slate-900 font-mono uppercase tracking-tight">
               Customer name
               <input
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none ring-0 transition focus:border-cyan-400"
+                className="rounded-md border-2 border-black bg-white px-4 py-3 text-base text-slate-900 outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all"
                 value={customerName}
                 onChange={(event) => setCustomerName(event.target.value)}
                 placeholder="Enter customer name"
@@ -728,15 +728,15 @@ function ActionButton(props: {
   const tone = props.tone ?? "primary";
   const className =
     tone === "primary"
-      ? "bg-slate-950 text-white hover:bg-slate-800"
-      : "bg-slate-100 text-slate-900 hover:bg-slate-200";
+      ? "bg-[#2a6de1] text-white active:bg-[#1a55b8]"
+      : "bg-white text-slate-900 active:bg-slate-100";
 
   return (
     <button
       type="button"
       onClick={props.onClick}
       disabled={props.busy}
-      className={`rounded-2xl px-4 py-3 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+      className={`rounded-md border-2 border-black px-4 py-3 text-sm font-bold transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none disabled:translate-x-1 disabled:translate-y-1 disabled:shadow-none disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
     >
       {props.busy ? "Working..." : props.children}
     </button>
@@ -745,7 +745,7 @@ function ActionButton(props: {
 
 function Tag(props: { children: React.ReactNode }) {
   return (
-    <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-slate-600">
+    <span className="rounded-sm border-2 border-black bg-[#f5ce4d] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black">
       {props.children}
     </span>
   );
