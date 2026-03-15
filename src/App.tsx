@@ -262,10 +262,10 @@ export default function App() {
                     type="button"
                     onClick={() => setSelectedScenarioId(scenario.id)}
                     className={[
-                      "grid gap-3 rounded-[28px] border px-4 py-4 text-left transition sm:px-5",
+                      "grid gap-3 rounded-md border-2 px-4 py-4 text-left transition-all sm:px-5 group",
                       isSelected
-                        ? "border-cyan-500 bg-cyan-50 shadow-[0_12px_40px_rgba(8,145,178,0.15)]"
-                        : "border-slate-200 bg-slate-50/70 hover:border-slate-300 hover:bg-white",
+                        ? "border-black bg-[#f5ce4d] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]" /* Popped out state for selected */
+                        : "border-black bg-white hover:bg-slate-50 shadow-none hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]",
                     ].join(" ")}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -290,21 +290,21 @@ export default function App() {
               })}
             </div>
 
-            <div className="rounded-[28px] border border-slate-200 bg-slate-950 p-5 text-white">
+            <div className="rounded-md border-2 border-black bg-white p-5 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm uppercase tracking-[0.2em] text-cyan-200">
+                  <p className="text-[10px] uppercase font-bold uppercase tracking-widest text-[#2a6de1] font-mono">
                     Selected script
                   </p>
-                  <h2 className="mt-2 text-2xl font-semibold">
+                  <h2 className="mt-2 text-2xl font-black">
                     {selectedScenario.title}
                   </h2>
                 </div>
-                <div className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100">
+                <div className="rounded-sm border-2 border-black bg-[#2a6de1] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
                   Routes to {selectedScenario.expectedAgent}
                 </div>
               </div>
-              <p className="mt-4 text-sm leading-7 text-slate-200">
+              <p className="mt-4 text-sm font-medium leading-7 text-slate-700">
                 {selectedScenario.notes}
               </p>
             </div>
@@ -402,10 +402,10 @@ export default function App() {
                             type="button"
                             onClick={() => setSelectedTicketId(ticket._id)}
                             className={[
-                              "grid gap-3 rounded-[24px] border px-4 py-4 text-left transition",
+                              "grid gap-3 rounded-md border-2 px-4 py-4 text-left transition-all",
                               isSelected
-                                ? "border-cyan-500 bg-cyan-50 shadow-[0_12px_40px_rgba(8,145,178,0.15)]"
-                                : "border-slate-200 bg-slate-50/80 hover:border-slate-300 hover:bg-white",
+                                ? "border-black bg-[#f5ce4d] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]" /* Popped out state for selected */
+                                : "border-black bg-white hover:bg-slate-50 shadow-none hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]",
                             ].join(" ")}
                           >
                             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -476,7 +476,7 @@ export default function App() {
 
               {selectedTicket ? (
                 <div className="mt-6 grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-                  <div className="grid gap-4 rounded-[28px] border border-slate-200 bg-slate-50/80 p-5">
+                  <div className="grid gap-4 rounded-md border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
                         <p className="text-sm uppercase tracking-[0.16em] text-slate-500">
@@ -539,8 +539,8 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="grid gap-3 rounded-[28px] border border-slate-200 bg-slate-950 p-5 text-white">
-                    <p className="text-sm font-semibold uppercase tracking-[0.16em] text-cyan-200">
+                  <div className="grid gap-3 rounded-md border-2 border-black bg-white p-5 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <p className="text-sm font-bold uppercase tracking-widest text-[#2a6de1] font-mono">
                       Transcript
                     </p>
                     {selectedTicket.ticket.transcript.length > 0 ? (
@@ -548,21 +548,20 @@ export default function App() {
                         <div
                           key={`${message.role}-${index}`}
                           className={[
-                            "max-w-[92%] rounded-[24px] px-4 py-3 text-sm leading-6 shadow-[0_12px_30px_rgba(15,23,42,0.3)]",
+                            "max-w-[92%] rounded-md px-4 py-3 text-sm leading-6 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
                             message.role === "customer"
-                              ? "justify-self-start bg-white/10 text-slate-100"
-                              : "justify-self-end bg-cyan-500/20 text-cyan-50",
+                              ? "justify-self-start bg-white text-black"
+                              : "justify-self-end bg-[#2a6de1] text-white",
                           ].join(" ")}
                         >
-                          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-100/90">
+                          <p className="mb-2 text-[10px] font-bold uppercase tracking-widest opacity-80 font-mono">
                             {message.role}
                           </p>
-                          <p>{message.content}</p>
+                          <p className="font-medium">{message.content}</p>
                         </div>
                       ))
                     ) : (
                       <EmptyState
-                        dark
                         message="No transcript saved for this ticket."
                       />
                     )}
@@ -620,10 +619,10 @@ function AgentLane(props: {
               type="button"
               onClick={() => props.onSelectTicket(ticket._id)}
               className={[
-                "grid gap-2 rounded-[22px] border px-4 py-3 text-left transition",
+                "grid gap-2 rounded-md border-2 px-4 py-3 text-left transition-all",
                 isSelected
-                  ? "border-cyan-500 bg-cyan-50"
-                  : "border-slate-200 bg-white hover:border-slate-300",
+                  ? "border-black bg-[#f5ce4d] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
+                  : "border-black bg-white shadow-none hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]",
               ].join(" ")}
             >
               <div className="flex items-center justify-between gap-3">
@@ -673,10 +672,10 @@ function Panel(props: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-4 rounded-[28px] border border-slate-200 bg-white p-5">
-      <div>
-        <h3 className="text-lg font-semibold text-slate-950">{props.title}</h3>
-        <p className="mt-1 text-sm text-slate-600">{props.subtitle}</p>
+    <div className="grid gap-4 rounded-md border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div className="border-b-2 border-black pb-3">
+        <h3 className="text-lg font-black text-black uppercase tracking-tight">{props.title}</h3>
+        <p className="mt-1 text-sm font-medium text-slate-700">{props.subtitle}</p>
       </div>
       <div className="grid gap-3">{props.children}</div>
     </div>
@@ -685,11 +684,11 @@ function Panel(props: {
 
 function StatCard(props: { label: string; value: number }) {
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
-      <p className="text-sm uppercase tracking-[0.16em] text-slate-500">
+    <div className="rounded-md border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
         {props.label}
       </p>
-      <p className="mt-3 text-3xl font-semibold text-slate-950">
+      <p className="mt-2 text-3xl font-black text-black">
         {props.value}
       </p>
     </div>
@@ -753,11 +752,11 @@ function Tag(props: { children: React.ReactNode }) {
 
 function DetailRow(props: { label: string; children: React.ReactNode }) {
   return (
-    <div className="grid gap-1 rounded-2xl border border-slate-200 bg-white px-4 py-3">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
+    <div className="grid gap-1 rounded-sm border-2 border-black bg-slate-50 px-4 py-3">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-600 font-mono">
         {props.label}
       </p>
-      <p className="text-sm leading-6 text-slate-700">{props.children}</p>
+      <p className="text-sm font-medium text-slate-900">{props.children}</p>
     </div>
   );
 }
