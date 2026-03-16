@@ -71,7 +71,7 @@ export function AgentView(props: { slug: string }) {
 
   if (!dashboard) {
     return (
-      <section className="rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
+      <section className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5">
         <EmptyState
           message={`Loading agent dashboard for "${props.slug}"...`}
         />
@@ -81,22 +81,22 @@ export function AgentView(props: { slug: string }) {
 
   if (!dashboard.agent) {
     return (
-      <section className="rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
+      <section className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5">
         <EmptyState message={`No agent found with slug "${props.slug}".`} />
       </section>
     );
   }
 
   return (
-    <section className="grid gap-6">
-      <div className="rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
+    <section className="grid gap-4">
+      <div className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5">
         <SectionHeading
           eyebrow={`Agent: ${dashboard.agent.name}`}
           title={`${dashboard.agent.name}'s Dashboard`}
           description={`Specialties: ${dashboard.agent.specialties.map((s: string) => humanizeToken(s)).join(", ")}`}
         />
 
-        <div className="mt-6 grid gap-4">
+        <div className="mt-4 grid gap-3">
           {dashboard.tickets.length > 0 ? (
             dashboard.tickets.map((ticket) => {
               const isSelected = ticket._id === selectedTicketId;
@@ -132,14 +132,10 @@ export function AgentView(props: { slug: string }) {
         </div>
       </div>
 
-      <div className="rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
-        <SectionHeading
-          eyebrow="Ticket detail"
-          title="Inspect the exact intake payload stored in Convex"
-          description="Use this panel to see the summary, transcript, assignment reason, and status controls."
-        />
+      <div className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5">
+        <SectionHeading eyebrow="Ticket detail" title="Selected Ticket" />
 
-        <div className="mt-6">
+        <div className="mt-4">
           <TicketDetail
             selectedTicket={selectedTicket}
             onStatusChange={(ticketId, status) =>

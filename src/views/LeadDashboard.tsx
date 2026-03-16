@@ -94,26 +94,19 @@ export function LeadDashboard() {
   }
 
   return (
-    <section className="grid gap-6">
+    <section className="grid gap-4">
       <header className="overflow-hidden rounded-md border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-        <div className="grid gap-6 px-6 py-8 lg:grid-cols-[1.5fr_1fr] lg:px-8">
-          <div className="space-y-4">
+        <div className="grid gap-4 px-5 py-5 lg:grid-cols-[1.5fr_1fr] lg:px-6">
+          <div className="space-y-3">
             <span className="inline-flex items-center rounded-sm border-2 border-black bg-[#f5ce4d] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black">
               Neosolve AI support
             </span>
-            <div className="space-y-3">
-              <h1 className="max-w-3xl text-4xl font-black tracking-tight text-black sm:text-5xl">
-                Voice AI support intake powered by Agora and Gemini.
-              </h1>
-              <p className="max-w-3xl text-base font-bold leading-7 text-slate-800 sm:text-lg">
-                Customers talk to Nova (AI voice agent) via Agora Conversational
-                AI. Gemini classifies the transcript and routes tickets to the
-                right specialist in real time.
-              </p>
-            </div>
+            <h1 className="max-w-3xl text-3xl font-black tracking-tight text-black sm:text-4xl">
+              Voice AI Support Intake
+            </h1>
           </div>
 
-          <div className="grid gap-3 rounded-md border-2 border-black bg-slate-900 p-5 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+          <div className="grid gap-2 rounded-md border-2 border-black bg-slate-900 p-4 text-sm text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
             <MetricPanel
               label="Active calls"
               value={String(leadDashboard?.metrics.activeCalls ?? 0)}
@@ -133,14 +126,10 @@ export function LeadDashboard() {
         </div>
       </header>
 
-      <div className="rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
-        <SectionHeading
-          eyebrow="Live operations"
-          title="Team lead dashboard"
-          description="Watch calls turn into tickets and confirm routing sends them to the intended specialist."
-        />
+      <div className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5">
+        <SectionHeading eyebrow="Live operations" title="Team Lead Dashboard" />
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Active calls"
             value={leadDashboard?.metrics.activeCalls ?? 0}
@@ -159,12 +148,9 @@ export function LeadDashboard() {
           />
         </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="grid gap-4">
-            <Panel
-              title="Active calls"
-              subtitle="End a live call to trigger classification and assignment."
-            >
+        <div className="mt-4 grid gap-4 lg:grid-cols-[0.92fr_1.08fr]">
+          <div className="grid gap-3">
+            <Panel title="Active calls">
               <ActiveCalls
                 calls={activeCalls}
                 onEndDemoCall={(callId) => void handleEndDemoCall(callId)}
@@ -173,11 +159,8 @@ export function LeadDashboard() {
             </Panel>
           </div>
 
-          <div className="grid gap-4">
-            <Panel
-              title="Ticket queue"
-              subtitle="Select a ticket to inspect the transcript, routing reason, and status."
-            >
+          <div className="grid gap-3">
+            <Panel title="Ticket queue">
               <TicketQueue
                 tickets={leadDashboard?.tickets ?? []}
                 selectedTicketId={selectedTicketId}
@@ -188,14 +171,10 @@ export function LeadDashboard() {
         </div>
       </div>
 
-      <div className="rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
-        <SectionHeading
-          eyebrow="Support lanes"
-          title="Per-agent dashboards"
-          description="These lists mirror the filtered agent views you can access from the navigation bar."
-        />
+      <div className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5">
+        <SectionHeading eyebrow="Support lanes" title="Per-Agent Dashboards" />
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
           {supportAgents && supportAgents.length > 0 ? (
             supportAgents.map((agent) => (
               <AgentLane
@@ -209,19 +188,15 @@ export function LeadDashboard() {
               />
             ))
           ) : (
-            <EmptyState message="No agents loaded yet. Seed the demo roster first." />
+            <EmptyState message="No agents loaded yet." />
           )}
         </div>
       </div>
 
-      <div className="rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
-        <SectionHeading
-          eyebrow="Ticket detail"
-          title="Inspect the exact intake payload stored in Convex"
-          description="Use this panel to see the summary, transcript, assignment reason, and status controls."
-        />
+      <div className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5">
+        <SectionHeading eyebrow="Ticket detail" title="Selected Ticket" />
 
-        <div className="mt-6">
+        <div className="mt-4">
           <TicketDetail
             selectedTicket={selectedTicket}
             onStatusChange={(ticketId, status) =>

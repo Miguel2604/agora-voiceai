@@ -37,14 +37,12 @@ export function TicketDetail(props: {
   const { selectedTicket } = props;
 
   if (!selectedTicket) {
-    return (
-      <EmptyState message="Select a ticket to view its transcript and routing detail." />
-    );
+    return <EmptyState message="Select a ticket to view details." />;
   }
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-      <div className="grid gap-4 rounded-md border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+    <div className="grid gap-4 xl:grid-cols-[0.92fr_1.08fr]">
+      <div className="grid gap-3 rounded-md border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-sm uppercase tracking-[0.16em] text-slate-500">
@@ -101,7 +99,7 @@ export function TicketDetail(props: {
         </div>
       </div>
 
-      <div className="grid gap-3 rounded-md border-2 border-black bg-white p-5 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div className="grid gap-2 rounded-md border-2 border-black bg-white p-4 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
         <p className="text-sm font-bold uppercase tracking-widest text-[#2a6de1] font-mono">
           Transcript
         </p>

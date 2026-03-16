@@ -262,12 +262,8 @@ export function LandingPage() {
   const isInCall = callState === "connected" || callState === "joining";
 
   return (
-    <section className="space-y-6 rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
-      <SectionHeading
-        eyebrow="Call controls"
-        title="Start a support call"
-        description="Use Live Call to talk to Nova via your microphone, or Demo Script to run a pre-written scenario."
-      />
+    <section className="space-y-4 rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5">
+      <SectionHeading eyebrow="Call controls" title="Start a Support Call" />
 
       {/* Mode toggle */}
       <div className="grid grid-cols-2 gap-0 rounded-md border-2 border-black overflow-hidden">
@@ -302,7 +298,7 @@ export function LandingPage() {
       </div>
 
       {/* Shared: customer name + admin buttons */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-2 sm:grid-cols-3">
         <ActionButton
           busy={pendingAction === "seeding"}
           onClick={() => void handleEnsureDemoReady()}
@@ -359,34 +355,18 @@ export function LandingPage() {
       {inputMode === "live" && (
         <>
           {callState === "idle" || callState === "error" ? (
-            <div className="grid gap-4">
-              <div className="rounded-md border-2 border-black bg-slate-50 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
-                  How it works
-                </p>
-                <p className="mt-2 text-sm font-medium leading-7 text-slate-700">
-                  Click "Call Now" to connect via your microphone. Nova (AI
-                  agent) will greet you, gather your support issue details, then
-                  the call transcript is classified by Gemini and routed to the
-                  right specialist.
-                </p>
-              </div>
-              <ActionButton
-                busy={false}
-                onClick={() => void handleStartLiveCall()}
-              >
-                Call now
-              </ActionButton>
-            </div>
+            <ActionButton
+              busy={false}
+              onClick={() => void handleStartLiveCall()}
+            >
+              Call now
+            </ActionButton>
           ) : null}
 
           {callState === "joining" ? (
-            <div className="rounded-md border-2 border-black bg-[#f5ce4d] p-6 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="rounded-md border-2 border-black bg-[#f5ce4d] p-5 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <p className="text-lg font-black text-black animate-pulse">
                 Connecting to Nova...
-              </p>
-              <p className="mt-2 text-sm font-medium text-slate-700">
-                Allow microphone access if prompted by your browser.
               </p>
             </div>
           ) : null}
@@ -401,12 +381,12 @@ export function LandingPage() {
           ) : null}
 
           {callState === "leaving" ? (
-            <div className="rounded-md border-2 border-black bg-slate-900 p-6 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="rounded-md border-2 border-black bg-slate-900 p-5 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <p className="text-lg font-black text-white animate-pulse">
                 Processing call...
               </p>
-              <p className="mt-2 text-sm font-medium text-slate-400">
-                Fetching transcript, classifying with Gemini, creating ticket.
+              <p className="mt-1 text-sm font-medium text-slate-400">
+                Creating ticket and routing to a specialist.
               </p>
             </div>
           ) : null}
@@ -416,7 +396,7 @@ export function LandingPage() {
       {/* ── Demo script mode ───────────────────────────── */}
       {inputMode === "demo" && (
         <>
-          <div className="grid gap-3">
+          <div className="grid gap-2">
             {DEMO_SCENARIOS.map((scenario) => {
               const isSelected = scenario.id === selectedScenarioId;
               return (
@@ -425,7 +405,7 @@ export function LandingPage() {
                   type="button"
                   onClick={() => setSelectedScenarioId(scenario.id)}
                   className={[
-                    "grid gap-3 rounded-md border-2 px-4 py-4 text-left transition-all sm:px-5 group",
+                    "grid gap-2 rounded-md border-2 px-4 py-3 text-left transition-all group",
                     isSelected
                       ? "border-black bg-[#f5ce4d] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
                       : "border-black bg-white hover:bg-slate-50 shadow-none hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]",
@@ -453,13 +433,13 @@ export function LandingPage() {
             })}
           </div>
 
-          <div className="rounded-md border-2 border-black bg-white p-5 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+          <div className="rounded-md border-2 border-black bg-white p-4 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[10px] uppercase font-bold uppercase tracking-widest text-[#2a6de1] font-mono">
                   Selected script
                 </p>
-                <h2 className="mt-2 text-2xl font-black">
+                <h2 className="mt-1 text-xl font-black">
                   {selectedScenario.title}
                 </h2>
               </div>
@@ -467,7 +447,7 @@ export function LandingPage() {
                 Routes to {selectedScenario.expectedAgent}
               </div>
             </div>
-            <p className="mt-4 text-sm font-medium leading-7 text-slate-700">
+            <p className="mt-2 text-sm font-medium leading-6 text-slate-700">
               {selectedScenario.notes}
             </p>
           </div>

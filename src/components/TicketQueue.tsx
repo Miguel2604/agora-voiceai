@@ -23,9 +23,7 @@ export function TicketQueue(props: {
   onSelectTicket: (ticketId: Id<"tickets">) => void;
 }) {
   if (props.tickets.length === 0) {
-    return (
-      <EmptyState message="No tickets created yet. End a call to populate the dashboard." />
-    );
+    return <EmptyState message="No tickets yet." />;
   }
 
   return (
@@ -38,7 +36,7 @@ export function TicketQueue(props: {
             type="button"
             onClick={() => props.onSelectTicket(ticket._id)}
             className={[
-              "grid gap-3 rounded-md border-2 px-4 py-4 text-left transition-all",
+              "grid gap-2 rounded-md border-2 px-4 py-3 text-left transition-all",
               isSelected
                 ? "border-black bg-[#f5ce4d] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
                 : "border-black bg-white hover:bg-slate-50 shadow-none hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]",

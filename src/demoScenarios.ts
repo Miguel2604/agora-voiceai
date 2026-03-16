@@ -26,7 +26,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "slow-internet",
     title: "Slow internet at home office",
-    preview: "Reliable demo path for Kean and the network queue.",
+    preview: "Customer reports slow speeds across all devices.",
     channelPrefix: "neosolve-slow",
     notes:
       "My internet has been very slow since yesterday. Video calls keep lagging and streaming buffers on all devices in the house.",
@@ -64,7 +64,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "billing-charge",
     title: "Double charge billing complaint",
-    preview: "Reliable demo path for Maya and account payments.",
+    preview: "Customer disputes a duplicate charge on their bill.",
     channelPrefix: "neosolve-billing",
     notes:
       "I was charged twice on my latest bill and I need someone to review the invoice before the next payment date.",
@@ -101,7 +101,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
   {
     id: "router-hardware",
     title: "Router hardware failure",
-    preview: "Useful fallback path for Carlos and equipment issues.",
+    preview: "Customer reports router with blinking red light and dropouts.",
     channelPrefix: "neosolve-hardware",
     notes:
       "The router looks broken. The power light keeps blinking red and the device disconnects every few minutes.",

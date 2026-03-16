@@ -5,37 +5,32 @@ import type { DemoScenario } from "../demoScenarios";
 export function SectionHeading(props: {
   eyebrow: string;
   title: string;
-  description: string;
+  description?: string;
 }) {
   return (
-    <div className="space-y-2 border-b-2 border-black pb-4 mb-4">
+    <div className="space-y-1 border-b-2 border-black pb-3 mb-3">
       <p className="text-xs font-bold uppercase tracking-widest text-slate-900 font-mono">
         {props.eyebrow}
       </p>
       <h2 className="text-2xl font-black tracking-tight text-black sm:text-3xl">
         {props.title}
       </h2>
-      <p className="max-w-3xl text-sm font-medium text-slate-800 sm:text-base">
-        {props.description}
-      </p>
+      {props.description ? (
+        <p className="text-sm font-medium text-slate-600">
+          {props.description}
+        </p>
+      ) : null}
     </div>
   );
 }
 
-export function Panel(props: {
-  title: string;
-  subtitle: string;
-  children: React.ReactNode;
-}) {
+export function Panel(props: { title: string; children: React.ReactNode }) {
   return (
-    <div className="grid gap-4 rounded-md border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-      <div className="border-b-2 border-black pb-3">
+    <div className="grid gap-3 rounded-md border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div className="border-b-2 border-black pb-2">
         <h3 className="text-lg font-black text-black uppercase tracking-tight">
           {props.title}
         </h3>
-        <p className="mt-1 text-sm font-medium text-slate-700">
-          {props.subtitle}
-        </p>
       </div>
       <div className="grid gap-3">{props.children}</div>
     </div>
@@ -44,11 +39,11 @@ export function Panel(props: {
 
 export function StatCard(props: { label: string; value: number }) {
   return (
-    <div className="rounded-md border-2 border-black bg-white p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+    <div className="rounded-md border-2 border-black bg-white p-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
         {props.label}
       </p>
-      <p className="mt-2 text-3xl font-black text-black">{props.value}</p>
+      <p className="mt-1 text-2xl font-black text-black">{props.value}</p>
     </div>
   );
 }
@@ -66,12 +61,12 @@ export function MetricPanel(props: {
 
   return (
     <div
-      className={`rounded-md border-2 border-black px-4 py-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${toneClassNames[props.tone]}`}
+      className={`rounded-md border-2 border-black px-3 py-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] ${toneClassNames[props.tone]}`}
     >
       <p className="text-[10px] font-bold uppercase tracking-widest font-mono">
         {props.label}
       </p>
-      <p className="mt-3 text-3xl font-bold font-mono">{props.value}</p>
+      <p className="mt-1 text-2xl font-bold font-mono">{props.value}</p>
     </div>
   );
 }

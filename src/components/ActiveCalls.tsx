@@ -15,9 +15,7 @@ export function ActiveCalls(props: {
   pendingAction: string | null;
 }) {
   if (!props.calls || props.calls.length === 0) {
-    return (
-      <EmptyState message="No active calls. Start one from the call controls." />
-    );
+    return <EmptyState message="No active calls." />;
   }
 
   return (
@@ -25,7 +23,7 @@ export function ActiveCalls(props: {
       {props.calls.map((call) => (
         <article
           key={call._id}
-          className="grid gap-3 rounded-[24px] border border-slate-200 bg-slate-50/80 p-4"
+          className="grid gap-2 rounded-[24px] border border-slate-200 bg-slate-50/80 p-3"
         >
           <div className="flex items-start justify-between gap-3">
             <div>

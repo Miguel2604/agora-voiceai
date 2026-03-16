@@ -8,8 +8,8 @@ export default function App() {
   const route = useRoute();
 
   return (
-    <div className="min-h-screen px-4 py-6 text-slate-950 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
+    <div className="min-h-screen px-4 py-4 text-slate-950 sm:px-5 lg:px-6">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-4">
         <NavBar />
         {route.view === "landing" && <LandingPage />}
         {route.view === "lead" && <LeadDashboard />}

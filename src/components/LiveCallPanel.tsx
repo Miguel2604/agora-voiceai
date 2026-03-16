@@ -9,7 +9,7 @@ export function LiveCallPanel(props: {
   const timeDisplay = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
   return (
-    <div className="grid gap-4 rounded-md border-2 border-black bg-slate-900 p-6 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+    <div className="grid gap-3 rounded-md border-2 border-black bg-slate-900 p-5 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="relative flex h-3 w-3">
@@ -24,10 +24,6 @@ export function LiveCallPanel(props: {
           {timeDisplay}
         </p>
       </div>
-      <p className="text-sm text-slate-400">
-        Speak into your microphone. Nova is listening and will gather your
-        support issue details.
-      </p>
       <div className="grid grid-cols-2 gap-3">
         <button
           type="button"
