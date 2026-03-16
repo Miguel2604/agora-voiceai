@@ -3,7 +3,12 @@ import { mutation, query } from "./_generated/server";
 import { assignBestAgent } from "./lib/assignAgent";
 import { classifyCallIntake } from "./lib/classifyCall";
 import { ensureSeededAgents } from "./lib/demoData";
-import { callStatusValidator, transcriptValidator } from "./lib/validators";
+import {
+  callStatusValidator,
+  supportCategoryValidator,
+  ticketPriorityValidator,
+  transcriptValidator,
+} from "./lib/validators";
 
 export const startCall = mutation({
   args: {
@@ -41,6 +46,15 @@ export const endCall = mutation({
     callId: v.id("calls"),
     notes: v.optional(v.string()),
     transcript: v.optional(transcriptValidator),
+    /** When provided by the processCallEnd action, this overrides the keyword classifier. */
+    aiClassification: v.optional(
+      v.object({
+        category: supportCategoryValidator,
+        priority: ticketPriorityValidator,
+        summary: v.string(),
+        isLegitimate: v.boolean(),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     const call = await ctx.db.get(args.callId);
@@ -55,11 +69,14 @@ export const endCall = mutation({
     const finalNotes = args.notes?.trim() || call.notes;
     const finalTranscript = args.transcript ?? call.transcript ?? [];
 
-    const classification = classifyCallIntake({
-      customerName: call.customerName,
-      notes: finalNotes,
-      transcript: finalTranscript,
-    });
+    // Use AI classification if provided, otherwise fall back to keyword classifier
+    const classification =
+      args.aiClassification ??
+      classifyCallIntake({
+        customerName: call.customerName,
+        notes: finalNotes,
+        transcript: finalTranscript,
+      });
 
     const agents = await ensureSeededAgents(ctx.db);
     const tickets = await ctx.db.query("tickets").collect();

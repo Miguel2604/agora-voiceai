@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import type { Id } from "../convex/_generated/dataModel";
 import {
@@ -7,6 +7,13 @@ import {
   getScenarioById,
   type DemoScenario,
 } from "./demoScenarios";
+// buildChannelName is available in ./lib/callSession if dynamic channels are needed
+import {
+  joinChannel,
+  leaveChannel,
+  toggleMute,
+  type CallSessionState,
+} from "./lib/agoraClient";
 
 type PendingAction =
   | "seeding"
@@ -16,7 +23,17 @@ type PendingAction =
   | "updating"
   | null;
 
+type InputMode = "live" | "demo";
+
+type LiveCallInfo = {
+  callId: Id<"calls">;
+  agentId: string;
+  channelName: string;
+  startedAt: number;
+};
+
 export default function App() {
+  const [inputMode, setInputMode] = useState<InputMode>("live");
   const [customerName, setCustomerName] = useState("Alyssa");
   const [selectedScenarioId, setSelectedScenarioId] = useState(
     DEMO_SCENARIOS[0].id,
@@ -27,11 +44,23 @@ export default function App() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Live call state
+  const [callState, setCallState] = useState<CallSessionState>("idle");
+  const [liveCall, setLiveCall] = useState<LiveCallInfo | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const durationRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const ensureDemoReady = useMutation(api.demo.ensureDemoReady);
   const resetDemo = useMutation(api.demo.resetDemo);
-  const startCall = useMutation(api.calls.startCall);
-  const endCall = useMutation(api.calls.endCall);
+  const startCallMutation = useMutation(api.calls.startCall);
+  const endCallMutation = useMutation(api.calls.endCall);
   const updateStatus = useMutation(api.tickets.updateStatus);
+
+  // Agora actions
+  const generateToken = useAction(api.agora.generateToken);
+  const startAgent = useAction(api.agora.startAgent);
+  const processCallEnd = useAction(api.callActions.processCallEnd);
 
   const leadDashboard = useQuery(api.tickets.leadDashboard, {});
   const supportAgents = useQuery(api.supportAgents.listAgents, {});
@@ -71,6 +100,29 @@ export default function App() {
     }
   }, [leadDashboard, selectedTicketId]);
 
+  // Call duration timer
+  useEffect(() => {
+    if (callState === "connected" && liveCall) {
+      durationRef.current = setInterval(() => {
+        setCallDuration(Math.floor((Date.now() - liveCall.startedAt) / 1000));
+      }, 1000);
+    } else {
+      if (durationRef.current) {
+        clearInterval(durationRef.current);
+        durationRef.current = null;
+      }
+      if (callState === "idle") {
+        setCallDuration(0);
+      }
+    }
+
+    return () => {
+      if (durationRef.current) {
+        clearInterval(durationRef.current);
+      }
+    };
+  }, [callState, liveCall]);
+
   async function handleResetDemo() {
     setPendingAction("resetting");
     setFeedback(null);
@@ -104,7 +156,115 @@ export default function App() {
     }
   }
 
-  async function handleStartCall() {
+  // ── Live call flow ─────────────────────────────────────────────
+  const handleStartLiveCall = useCallback(async () => {
+    const trimmedName = customerName.trim();
+    if (!trimmedName) {
+      setErrorMessage("Add a customer name before starting a call.");
+      return;
+    }
+
+    setCallState("joining");
+    setFeedback(null);
+    setErrorMessage(null);
+
+    try {
+      // 1. Use fixed channel name (must match the temp token's channel)
+      const channelName = "neosolve";
+
+      // 2. Get token + app ID
+      const { token, appId } = await generateToken({
+        channelName,
+        uid: 0,
+      });
+
+      // 3. Join Agora RTC channel from the browser
+      const session = await joinChannel({
+        appId,
+        channelName,
+        token: token || null,
+      });
+
+      const customerUid = String(session.uid);
+
+      // 4. Create call record in Convex
+      const { callId } = await startCallMutation({
+        customerName: trimmedName,
+        channelName,
+      });
+
+      // 5. Start the AI agent via Convex action
+      const agentResult = await startAgent({
+        channelName,
+        customerUid,
+        token: token || "",
+      });
+
+      setLiveCall({
+        callId,
+        agentId: agentResult.agentId,
+        channelName,
+        startedAt: Date.now(),
+      });
+      setCallState("connected");
+      setFeedback(
+        `Connected! Nova is greeting ${trimmedName}. Speak into your microphone.`,
+      );
+    } catch (error) {
+      setCallState("error");
+      setErrorMessage(getErrorMessage(error));
+      // Clean up browser RTC if it partially joined
+      try {
+        await leaveChannel();
+      } catch {
+        // ignore cleanup errors
+      }
+    }
+  }, [customerName, generateToken, startCallMutation, startAgent]);
+
+  const handleEndLiveCall = useCallback(async () => {
+    if (!liveCall) return;
+
+    setCallState("leaving");
+    setFeedback(null);
+    setErrorMessage(null);
+
+    try {
+      // 1. Leave the browser RTC channel
+      await leaveChannel();
+
+      // 2. Process the call end on the server (fetch transcript, classify, create ticket)
+      const result = await processCallEnd({
+        callId: liveCall.callId,
+        agentId: liveCall.agentId,
+      });
+
+      setSelectedTicketId(result.ticketId);
+      setFeedback(
+        result.assignedAgentName
+          ? `Call ended. Ticket routed to ${result.assignedAgentName}.`
+          : "Call ended. Ticket created without an assigned agent.",
+      );
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    } finally {
+      setLiveCall(null);
+      setCallState("idle");
+      setIsMuted(false);
+    }
+  }, [liveCall, processCallEnd]);
+
+  const handleToggleMute = useCallback(async () => {
+    try {
+      const newMuted = await toggleMute();
+      setIsMuted(newMuted);
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+    }
+  }, []);
+
+  // ── Demo script flow (unchanged) ──────────────────────────────
+  async function handleStartDemoCall() {
     const trimmedName = customerName.trim();
     if (!trimmedName) {
       setErrorMessage("Add a customer name before starting a call.");
@@ -116,7 +276,7 @@ export default function App() {
     setErrorMessage(null);
 
     try {
-      await startCall({
+      await startCallMutation({
         customerName: trimmedName,
         channelName: `${selectedScenario.channelPrefix}-${Date.now()}`,
         notes: selectedScenario.notes,
@@ -132,13 +292,13 @@ export default function App() {
     }
   }
 
-  async function handleEndCall(callId: Id<"calls">) {
+  async function handleEndDemoCall(callId: Id<"calls">) {
     setPendingAction("ending");
     setFeedback(null);
     setErrorMessage(null);
 
     try {
-      const result = await endCall({ callId });
+      const result = await endCallMutation({ callId });
       setSelectedTicketId(result.ticketId);
       setFeedback(
         result.assignedAgentName
@@ -170,6 +330,8 @@ export default function App() {
     }
   }
 
+  const isInCall = callState === "connected" || callState === "joining";
+
   return (
     <div className="min-h-screen px-4 py-6 text-slate-950 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
@@ -177,17 +339,16 @@ export default function App() {
           <div className="grid gap-6 px-6 py-8 lg:grid-cols-[1.5fr_1fr] lg:px-8">
             <div className="space-y-4">
               <span className="inline-flex items-center rounded-sm border-2 border-black bg-[#f5ce4d] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-black">
-                Neosolve demo backend
+                Neosolve AI support
               </span>
               <div className="space-y-3">
                 <h1 className="max-w-3xl text-4xl font-black tracking-tight text-black sm:text-5xl">
-                  Build the scripted support flow now, then plug Agora voice and
-                  AI in tomorrow.
+                  Voice AI support intake powered by Agora and Gemini.
                 </h1>
                 <p className="max-w-3xl text-base font-bold leading-7 text-slate-800 sm:text-lg">
-                  This control room exercises the Convex backend with
-                  deterministic intake scenarios, real-time ticket routing, and
-                  per-agent queues.
+                  Customers talk to Nova (AI voice agent) via Agora
+                  Conversational AI. Gemini classifies the transcript and routes
+                  tickets to the right specialist in real time.
                 </p>
               </div>
             </div>
@@ -215,11 +376,44 @@ export default function App() {
         <div className="grid gap-6 xl:grid-cols-[1.05fr_1.45fr]">
           <section className="space-y-6 rounded-md border-2 border-black bg-white p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-7">
             <SectionHeading
-              eyebrow="Demo controls"
-              title="Create scripted calls against the live backend"
-              description="Seed the support roster, pick a scenario, and run the exact call-to-ticket path you want to show tomorrow."
+              eyebrow="Call controls"
+              title="Start a support call"
+              description="Use Live Call to talk to Nova via your microphone, or Demo Script to run a pre-written scenario."
             />
 
+            {/* Mode toggle */}
+            <div className="grid grid-cols-2 gap-0 rounded-md border-2 border-black overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setInputMode("live")}
+                disabled={isInCall}
+                className={[
+                  "px-4 py-3 text-sm font-bold uppercase tracking-widest transition-all border-r-2 border-black",
+                  inputMode === "live"
+                    ? "bg-[#2a6de1] text-white"
+                    : "bg-white text-slate-600 hover:bg-slate-50",
+                  isInCall ? "cursor-not-allowed opacity-60" : "",
+                ].join(" ")}
+              >
+                Live call
+              </button>
+              <button
+                type="button"
+                onClick={() => setInputMode("demo")}
+                disabled={isInCall}
+                className={[
+                  "px-4 py-3 text-sm font-bold uppercase tracking-widest transition-all",
+                  inputMode === "demo"
+                    ? "bg-[#2a6de1] text-white"
+                    : "bg-white text-slate-600 hover:bg-slate-50",
+                  isInCall ? "cursor-not-allowed opacity-60" : "",
+                ].join(" ")}
+              >
+                Demo script
+              </button>
+            </div>
+
+            {/* Shared: customer name + admin buttons */}
             <div className="grid gap-3 sm:grid-cols-3">
               <ActionButton
                 busy={pendingAction === "seeding"}
@@ -235,79 +429,150 @@ export default function App() {
               >
                 Reset demo
               </ActionButton>
-              <ActionButton
-                busy={pendingAction === "starting"}
-                onClick={() => void handleStartCall()}
-              >
-                Start call
-              </ActionButton>
+              {inputMode === "demo" ? (
+                <ActionButton
+                  busy={pendingAction === "starting"}
+                  onClick={() => void handleStartDemoCall()}
+                >
+                  Start call
+                </ActionButton>
+              ) : (
+                <div /> /* spacer */
+              )}
             </div>
 
             <label className="grid gap-2 text-sm font-bold text-slate-900 font-mono uppercase tracking-tight">
               Customer name
               <input
-                className="rounded-md border-2 border-black bg-white px-4 py-3 text-base text-slate-900 outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all"
+                className="rounded-md border-2 border-black bg-white px-4 py-3 text-base text-slate-900 outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 value={customerName}
                 onChange={(event) => setCustomerName(event.target.value)}
                 placeholder="Enter customer name"
+                disabled={isInCall}
               />
             </label>
 
-            <div className="grid gap-3">
-              {DEMO_SCENARIOS.map((scenario) => {
-                const isSelected = scenario.id === selectedScenarioId;
-                return (
-                  <button
-                    key={scenario.id}
-                    type="button"
-                    onClick={() => setSelectedScenarioId(scenario.id)}
-                    className={[
-                      "grid gap-3 rounded-md border-2 px-4 py-4 text-left transition-all sm:px-5 group",
-                      isSelected
-                        ? "border-black bg-[#f5ce4d] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]" /* Popped out state for selected */
-                        : "border-black bg-white hover:bg-slate-50 shadow-none hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]",
-                    ].join(" ")}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="text-base font-semibold text-slate-950">
-                          {scenario.title}
-                        </p>
-                        <p className="text-sm text-slate-600">
-                          {scenario.preview}
-                        </p>
-                      </div>
-                      <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white">
-                        {humanizeToken(scenario.expectedCategory)}
-                      </span>
+            {/* ── Live call mode ──────────────────────────────── */}
+            {inputMode === "live" && (
+              <>
+                {callState === "idle" || callState === "error" ? (
+                  <div className="grid gap-4">
+                    <div className="rounded-md border-2 border-black bg-slate-50 p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
+                        How it works
+                      </p>
+                      <p className="mt-2 text-sm font-medium leading-7 text-slate-700">
+                        Click "Call Now" to connect via your microphone. Nova
+                        (AI agent) will greet you, gather your support issue
+                        details, then the call transcript is classified by
+                        Gemini and routed to the right specialist.
+                      </p>
                     </div>
-                    <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-600">
-                      <Tag>{scenario.expectedAgent}</Tag>
-                      <Tag>{humanizePriority(scenario.expectedPriority)}</Tag>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                    <ActionButton
+                      busy={false}
+                      onClick={() => void handleStartLiveCall()}
+                    >
+                      Call now
+                    </ActionButton>
+                  </div>
+                ) : null}
 
-            <div className="rounded-md border-2 border-black bg-white p-5 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[10px] uppercase font-bold uppercase tracking-widest text-[#2a6de1] font-mono">
-                    Selected script
+                {callState === "joining" ? (
+                  <div className="rounded-md border-2 border-black bg-[#f5ce4d] p-6 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <p className="text-lg font-black text-black animate-pulse">
+                      Connecting to Nova...
+                    </p>
+                    <p className="mt-2 text-sm font-medium text-slate-700">
+                      Allow microphone access if prompted by your browser.
+                    </p>
+                  </div>
+                ) : null}
+
+                {callState === "connected" ? (
+                  <LiveCallPanel
+                    duration={callDuration}
+                    isMuted={isMuted}
+                    onToggleMute={() => void handleToggleMute()}
+                    onEndCall={() => void handleEndLiveCall()}
+                  />
+                ) : null}
+
+                {callState === "leaving" ? (
+                  <div className="rounded-md border-2 border-black bg-slate-900 p-6 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                    <p className="text-lg font-black text-white animate-pulse">
+                      Processing call...
+                    </p>
+                    <p className="mt-2 text-sm font-medium text-slate-400">
+                      Fetching transcript, classifying with Gemini, creating
+                      ticket.
+                    </p>
+                  </div>
+                ) : null}
+              </>
+            )}
+
+            {/* ── Demo script mode ───────────────────────────── */}
+            {inputMode === "demo" && (
+              <>
+                <div className="grid gap-3">
+                  {DEMO_SCENARIOS.map((scenario) => {
+                    const isSelected = scenario.id === selectedScenarioId;
+                    return (
+                      <button
+                        key={scenario.id}
+                        type="button"
+                        onClick={() => setSelectedScenarioId(scenario.id)}
+                        className={[
+                          "grid gap-3 rounded-md border-2 px-4 py-4 text-left transition-all sm:px-5 group",
+                          isSelected
+                            ? "border-black bg-[#f5ce4d] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
+                            : "border-black bg-white hover:bg-slate-50 shadow-none hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]",
+                        ].join(" ")}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <p className="text-base font-semibold text-slate-950">
+                              {scenario.title}
+                            </p>
+                            <p className="text-sm text-slate-600">
+                              {scenario.preview}
+                            </p>
+                          </div>
+                          <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white">
+                            {humanizeToken(scenario.expectedCategory)}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-600">
+                          <Tag>{scenario.expectedAgent}</Tag>
+                          <Tag>
+                            {humanizePriority(scenario.expectedPriority)}
+                          </Tag>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="rounded-md border-2 border-black bg-white p-5 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold uppercase tracking-widest text-[#2a6de1] font-mono">
+                        Selected script
+                      </p>
+                      <h2 className="mt-2 text-2xl font-black">
+                        {selectedScenario.title}
+                      </h2>
+                    </div>
+                    <div className="rounded-sm border-2 border-black bg-[#2a6de1] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
+                      Routes to {selectedScenario.expectedAgent}
+                    </div>
+                  </div>
+                  <p className="mt-4 text-sm font-medium leading-7 text-slate-700">
+                    {selectedScenario.notes}
                   </p>
-                  <h2 className="mt-2 text-2xl font-black">
-                    {selectedScenario.title}
-                  </h2>
                 </div>
-                <div className="rounded-sm border-2 border-black bg-[#2a6de1] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
-                  Routes to {selectedScenario.expectedAgent}
-                </div>
-              </div>
-              <p className="mt-4 text-sm font-medium leading-7 text-slate-700">
-                {selectedScenario.notes}
-              </p>
-            </div>
+              </>
+            )}
 
             {feedback ? (
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
@@ -326,7 +591,7 @@ export default function App() {
               <SectionHeading
                 eyebrow="Live operations"
                 title="Team lead dashboard"
-                description="Watch calls turn into tickets and confirm the deterministic router sends them to the intended specialist."
+                description="Watch calls turn into tickets and confirm routing sends them to the intended specialist."
               />
 
               <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -369,21 +634,24 @@ export default function App() {
                                 Started {formatTimestamp(call.startedAt)}
                               </p>
                             </div>
-                            <Tag>{call.status}</Tag>
+                            <Tag>{call.agoraAgentId ? "live" : "demo"}</Tag>
                           </div>
                           <p className="text-sm leading-6 text-slate-600">
-                            {call.notes ?? "No call notes captured yet."}
+                            {call.notes ?? "Live voice call in progress."}
                           </p>
-                          <ActionButton
-                            busy={pendingAction === "ending"}
-                            onClick={() => void handleEndCall(call._id)}
-                          >
-                            End call and create ticket
-                          </ActionButton>
+                          {/* Only show end button for demo calls — live calls end from the call panel */}
+                          {!call.agoraAgentId && (
+                            <ActionButton
+                              busy={pendingAction === "ending"}
+                              onClick={() => void handleEndDemoCall(call._id)}
+                            >
+                              End call and create ticket
+                            </ActionButton>
+                          )}
                         </article>
                       ))
                     ) : (
-                      <EmptyState message="No active calls yet. Start one from the scripted scenarios." />
+                      <EmptyState message="No active calls. Start one from the call controls." />
                     )}
                   </Panel>
                 </div>
@@ -404,7 +672,7 @@ export default function App() {
                             className={[
                               "grid gap-3 rounded-md border-2 px-4 py-4 text-left transition-all",
                               isSelected
-                                ? "border-black bg-[#f5ce4d] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]" /* Popped out state for selected */
+                                ? "border-black bg-[#f5ce4d] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
                                 : "border-black bg-white hover:bg-slate-50 shadow-none hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]",
                             ].join(" ")}
                           >
@@ -471,7 +739,7 @@ export default function App() {
               <SectionHeading
                 eyebrow="Ticket detail"
                 title="Inspect the exact intake payload stored in Convex"
-                description="Use this panel to show the summary, transcript, assignment reason, and status controls during the demo."
+                description="Use this panel to see the summary, transcript, assignment reason, and status controls."
               />
 
               {selectedTicket ? (
@@ -519,10 +787,12 @@ export default function App() {
                             <ActionButton
                               key={status}
                               busy={pendingAction === "updating"}
-                              onClick={() => void handleStatusChange(
-                                selectedTicket.ticket._id,
-                                status,
-                              )}
+                              onClick={() =>
+                                void handleStatusChange(
+                                  selectedTicket.ticket._id,
+                                  status,
+                                )
+                              }
                               tone={
                                 selectedTicket.ticket.status === status
                                   ? "primary"
@@ -559,9 +829,7 @@ export default function App() {
                         </div>
                       ))
                     ) : (
-                      <EmptyState
-                        message="No transcript saved for this ticket."
-                      />
+                      <EmptyState message="No transcript saved for this ticket." />
                     )}
                   </div>
                 </div>
@@ -577,6 +845,65 @@ export default function App() {
     </div>
   );
 }
+
+// ── Live call panel ──────────────────────────────────────────────
+
+function LiveCallPanel(props: {
+  duration: number;
+  isMuted: boolean;
+  onToggleMute: () => void;
+  onEndCall: () => void;
+}) {
+  const minutes = Math.floor(props.duration / 60);
+  const seconds = props.duration % 60;
+  const timeDisplay = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+
+  return (
+    <div className="grid gap-4 rounded-md border-2 border-black bg-slate-900 p-6 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="relative flex h-3 w-3">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
+          </span>
+          <p className="text-sm font-bold uppercase tracking-widest font-mono">
+            Live call with Nova
+          </p>
+        </div>
+        <p className="text-2xl font-black font-mono tabular-nums">
+          {timeDisplay}
+        </p>
+      </div>
+      <p className="text-sm text-slate-400">
+        Speak into your microphone. Nova is listening and will gather your
+        support issue details.
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <button
+          type="button"
+          onClick={props.onToggleMute}
+          className={[
+            "rounded-md border-2 border-white/20 px-4 py-3 text-sm font-bold transition-all",
+            props.isMuted
+              ? "bg-[#f5ce4d] text-black"
+              : "bg-white/10 text-white hover:bg-white/20",
+          ].join(" ")}
+        >
+          {props.isMuted ? "Unmute" : "Mute"}
+        </button>
+        <button
+          type="button"
+          onClick={props.onEndCall}
+          className="rounded-md border-2 border-[#e03b24] bg-[#e03b24] px-4 py-3 text-sm font-bold text-white transition-all shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none"
+        >
+          End call
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Agent lane ───────────────────────────────────────────────────
 
 function AgentLane(props: {
   agentSlug: string;
@@ -600,7 +927,7 @@ function AgentLane(props: {
           <p className="mt-2 text-sm leading-6 text-slate-600">
             {props.specialties
               .map((specialty) => humanizeToken(specialty))
-              .join(" • ")}
+              .join(" / ")}
           </p>
         </div>
         <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
@@ -644,6 +971,8 @@ function AgentLane(props: {
   );
 }
 
+// ── Shared UI components ─────────────────────────────────────────
+
 function SectionHeading(props: {
   eyebrow: string;
   title: string;
@@ -672,8 +1001,12 @@ function Panel(props: {
   return (
     <div className="grid gap-4 rounded-md border-2 border-black bg-white p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
       <div className="border-b-2 border-black pb-3">
-        <h3 className="text-lg font-black text-black uppercase tracking-tight">{props.title}</h3>
-        <p className="mt-1 text-sm font-medium text-slate-700">{props.subtitle}</p>
+        <h3 className="text-lg font-black text-black uppercase tracking-tight">
+          {props.title}
+        </h3>
+        <p className="mt-1 text-sm font-medium text-slate-700">
+          {props.subtitle}
+        </p>
       </div>
       <div className="grid gap-3">{props.children}</div>
     </div>
@@ -686,9 +1019,7 @@ function StatCard(props: { label: string; value: number }) {
       <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 font-mono">
         {props.label}
       </p>
-      <p className="mt-2 text-3xl font-black text-black">
-        {props.value}
-      </p>
+      <p className="mt-2 text-3xl font-black text-black">{props.value}</p>
     </div>
   );
 }
@@ -699,9 +1030,9 @@ function MetricPanel(props: {
   tone: "cyan" | "amber" | "rose";
 }) {
   const toneClassNames = {
-    cyan: "bg-[#2a6de1] text-white", // Classic thick blue
-    amber: "bg-[#f5ce4d] text-black", // Neobrutalist yellow
-    rose: "bg-[#e03b24] text-white", // Hard red
+    cyan: "bg-[#2a6de1] text-white",
+    amber: "bg-[#f5ce4d] text-black",
+    rose: "bg-[#e03b24] text-white",
   } as const;
 
   return (
@@ -773,6 +1104,8 @@ function EmptyState(props: { message: string; dark?: boolean }) {
     </div>
   );
 }
+
+// ── Utilities ────────────────────────────────────────────────────
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {

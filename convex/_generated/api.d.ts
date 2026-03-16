@@ -8,8 +8,11 @@
  * @module
  */
 
+import type * as agora from "../agora.js";
+import type * as callActions from "../callActions.js";
 import type * as calls from "../calls.js";
 import type * as demo from "../demo.js";
+import type * as lib_aiClassification from "../lib/aiClassification.js";
 import type * as lib_assignAgent from "../lib/assignAgent.js";
 import type * as lib_classifyCall from "../lib/classifyCall.js";
 import type * as lib_constants from "../lib/constants.js";
@@ -25,8 +28,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  agora: typeof agora;
+  callActions: typeof callActions;
   calls: typeof calls;
   demo: typeof demo;
+  "lib/aiClassification": typeof lib_aiClassification;
   "lib/assignAgent": typeof lib_assignAgent;
   "lib/classifyCall": typeof lib_classifyCall;
   "lib/constants": typeof lib_constants;
