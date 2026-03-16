@@ -21,6 +21,8 @@ export type CallClassification = {
   priority: TicketPriority;
   summary: string;
   isLegitimate: boolean;
+  /** Phone number extracted from the transcript text via regex, if found. */
+  phoneNumber?: string;
 };
 
 const CATEGORY_RULES: CategoryRule[] = [
@@ -163,14 +165,19 @@ export function classifyCallIntake({
 
   const isLegitimate = !containsAny(combinedText, NON_SUPPORT_KEYWORDS);
 
+  // Attempt to extract a phone number from the transcript text
+  const phoneNumber = extractPhoneFromText(combinedText);
+
   if (!isLegitimate) {
-    return {
+    const result: CallClassification = {
       category: "general",
       priority: "low",
       summary:
         "The call appears to be a test or non-support request and can be reviewed manually.",
       isLegitimate: false,
     };
+    if (phoneNumber) result.phoneNumber = phoneNumber;
+    return result;
   }
 
   const bestRule = CATEGORY_RULES.map((rule) => ({
@@ -194,6 +201,7 @@ export function classifyCallIntake({
     priority,
     summary,
     isLegitimate: true,
+    ...(phoneNumber ? { phoneNumber } : {}),
   };
 }
 
@@ -231,4 +239,43 @@ function appendSeverity(summary: string, priority: TicketPriority): string {
     default:
       return summary;
   }
+}
+
+/**
+ * Extract a Philippine mobile phone number from free-form text using regex.
+ *
+ * Recognizes formats like:
+ * - +639171234567 / +63 917 123 4567
+ * - 09171234567 / 0917-123-4567 / 0917 123 4567
+ * - 639171234567
+ *
+ * Returns the number in E.164 format (+639XXXXXXXXX) or undefined if none found.
+ */
+export function extractPhoneFromText(text: string): string | undefined {
+  // Pattern 1: +63 followed by 10 digits (with optional separators)
+  const e164Match = text.match(/\+63[\s-]?9[\s-]?\d{2}[\s-]?\d{3}[\s-]?\d{4}/);
+  if (e164Match) {
+    const digits = e164Match[0].replace(/[\s-]/g, "");
+    return digits; // already +639XXXXXXXXX
+  }
+
+  // Pattern 2: 09XX... local format (11 digits with optional separators)
+  const localMatch = text.match(
+    /(?<!\d)09[\s-]?\d{2}[\s-]?\d{3}[\s-]?\d{4}(?!\d)/,
+  );
+  if (localMatch) {
+    const digits = localMatch[0].replace(/[\s-]/g, "");
+    return `+63${digits.slice(1)}`;
+  }
+
+  // Pattern 3: 639XX... without + prefix (12 digits)
+  const noPlus = text.match(
+    /(?<!\d)639[\s-]?\d{2}[\s-]?\d{3}[\s-]?\d{4}(?!\d)/,
+  );
+  if (noPlus) {
+    const digits = noPlus[0].replace(/[\s-]/g, "");
+    return `+${digits}`;
+  }
+
+  return undefined;
 }

@@ -24,6 +24,7 @@ export default defineSchema({
     agoraAgentId: v.optional(v.string()),
     status: callStatusValidator,
     customerName: v.string(),
+    customerPhone: v.optional(v.string()),
     notes: v.optional(v.string()),
     transcript: v.optional(transcriptValidator),
     startedAt: v.number(),
@@ -35,6 +36,7 @@ export default defineSchema({
   tickets: defineTable({
     callId: v.id("calls"),
     customerName: v.string(),
+    customerPhone: v.optional(v.string()),
     category: supportCategoryValidator,
     priority: ticketPriorityValidator,
     summary: v.string(),
@@ -45,6 +47,7 @@ export default defineSchema({
     assignmentReason: v.string(),
     status: ticketStatusValidator,
     isLegitimate: v.boolean(),
+    smsNotificationSent: v.optional(v.boolean()),
     startedAt: v.number(),
     endedAt: v.number(),
     createdAt: v.number(),

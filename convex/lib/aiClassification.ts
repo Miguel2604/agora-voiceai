@@ -19,6 +19,8 @@ export type ClassificationResult = {
   priority: TicketPriority;
   summary: string;
   isLegitimate: boolean;
+  /** Phone number extracted from the transcript, if the customer provided one verbally. */
+  phoneNumber?: string;
 };
 
 const SAFE_DEFAULTS: ClassificationResult = {
@@ -44,11 +46,35 @@ Analyze the following support call transcript and return a JSON object with thes
 - "priority": one of ${JSON.stringify([...TICKET_PRIORITIES])}
 - "summary": a 1-2 sentence summary of the customer's issue
 - "isLegitimate": boolean, false if this is a prank, test call, or non-support request
+- "phoneNumber": if the customer mentions their phone or mobile number during the call, extract it here in E.164 format (e.g. "+639171234567"). If the customer uses a local format like "0917-123-4567" or "zero nine one seven", convert it to "+63" followed by the 10-digit number. If no phone number is mentioned, omit this field or set it to null.
 
 Transcript:
 ${lines}
 
 Respond ONLY with the JSON object, no markdown fences, no explanation.`;
+}
+
+/**
+ * Normalize a phone number value into Philippine E.164 format (+63XXXXXXXXXX).
+ * Returns the normalized number, or undefined if the input doesn't look valid.
+ */
+export function normalizePhoneNumber(value: unknown): string | undefined {
+  if (typeof value !== "string" || value.length === 0) return undefined;
+
+  // Strip all non-digit characters except leading +
+  const cleaned = value.replace(/[^\d+]/g, "");
+
+  // Already in E.164 Philippine format: +639XXXXXXXXX (13 chars)
+  if (/^\+639\d{9}$/.test(cleaned)) return cleaned;
+
+  // Local format: 09XXXXXXXXX (11 digits) → convert to +63
+  if (/^09\d{9}$/.test(cleaned)) return `+63${cleaned.slice(1)}`;
+
+  // With country code but no +: 639XXXXXXXXX (12 digits)
+  if (/^639\d{9}$/.test(cleaned)) return `+${cleaned}`;
+
+  // Not a valid Philippine mobile number
+  return undefined;
 }
 
 /**
@@ -86,7 +112,19 @@ export function normalizeClassificationResult(
       ? obj.isLegitimate
       : SAFE_DEFAULTS.isLegitimate;
 
-  return { category, priority, summary, isLegitimate };
+  // Extract and validate phone number (optional field)
+  const phoneNumber = normalizePhoneNumber(obj.phoneNumber);
+
+  const result: ClassificationResult = {
+    category,
+    priority,
+    summary,
+    isLegitimate,
+  };
+  if (phoneNumber) {
+    result.phoneNumber = phoneNumber;
+  }
+  return result;
 }
 
 /**

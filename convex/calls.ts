@@ -13,6 +13,7 @@ import {
 export const startCall = mutation({
   args: {
     customerName: v.string(),
+    customerPhone: v.optional(v.string()),
     channelName: v.optional(v.string()),
     agoraAgentId: v.optional(v.string()),
     notes: v.optional(v.string()),
@@ -29,6 +30,7 @@ export const startCall = mutation({
     const startedAt = Date.now();
     const callId = await ctx.db.insert("calls", {
       customerName,
+      customerPhone: args.customerPhone?.trim() || undefined,
       channelName: args.channelName,
       agoraAgentId: args.agoraAgentId,
       notes: args.notes?.trim() || undefined,
@@ -53,6 +55,7 @@ export const endCall = mutation({
         priority: ticketPriorityValidator,
         summary: v.string(),
         isLegitimate: v.boolean(),
+        phoneNumber: v.optional(v.string()),
       }),
     ),
   },
@@ -78,6 +81,18 @@ export const endCall = mutation({
         transcript: finalTranscript,
       });
 
+    // Use the phone from the form; fall back to phone extracted from transcript
+    const extractedPhone =
+      "phoneNumber" in classification
+        ? (classification as { phoneNumber?: string }).phoneNumber
+        : undefined;
+    const resolvedPhone = call.customerPhone || extractedPhone || undefined;
+
+    // If we discovered a phone from the transcript, persist it on the call too
+    if (!call.customerPhone && resolvedPhone) {
+      await ctx.db.patch(call._id, { customerPhone: resolvedPhone });
+    }
+
     const agents = await ensureSeededAgents(ctx.db);
     const tickets = await ctx.db.query("tickets").collect();
     const assignment = assignBestAgent({
@@ -89,6 +104,7 @@ export const endCall = mutation({
     const ticketId = await ctx.db.insert("tickets", {
       callId: call._id,
       customerName: call.customerName,
+      customerPhone: resolvedPhone,
       category: classification.category,
       priority: classification.priority,
       summary: classification.summary,
@@ -99,6 +115,7 @@ export const endCall = mutation({
       assignmentReason: assignment.reason,
       status: "open",
       isLegitimate: classification.isLegitimate,
+      smsNotificationSent: false,
       startedAt: call.startedAt,
       endedAt,
       createdAt: endedAt,
@@ -117,6 +134,10 @@ export const endCall = mutation({
       ticketId,
       assignmentReason: assignment.reason,
       assignedAgentName: assignment.agent?.name ?? null,
+      customerPhone: resolvedPhone ?? null,
+      customerName: call.customerName,
+      category: classification.category,
+      priority: classification.priority,
     };
   },
 });

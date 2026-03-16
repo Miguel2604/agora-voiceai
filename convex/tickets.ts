@@ -156,3 +156,20 @@ export const updateStatus = mutation({
     };
   },
 });
+
+export const markSmsSent = mutation({
+  args: {
+    ticketId: v.id("tickets"),
+    sent: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const ticket = await ctx.db.get(args.ticketId);
+    if (!ticket) {
+      throw new Error("Ticket not found.");
+    }
+
+    await ctx.db.patch(ticket._id, {
+      smsNotificationSent: args.sent,
+    });
+  },
+});
