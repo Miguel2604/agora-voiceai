@@ -115,7 +115,7 @@ export const endCall = mutation({
       assignmentReason: assignment.reason,
       status: "open",
       isLegitimate: classification.isLegitimate,
-      smsNotificationSent: false,
+
       startedAt: call.startedAt,
       endedAt,
       createdAt: endedAt,
@@ -134,10 +134,6 @@ export const endCall = mutation({
       ticketId,
       assignmentReason: assignment.reason,
       assignedAgentName: assignment.agent?.name ?? null,
-      customerPhone: resolvedPhone ?? null,
-      customerName: call.customerName,
-      category: classification.category,
-      priority: classification.priority,
     };
   },
 });

@@ -20,7 +20,6 @@ type TicketData = {
     status: "open" | "in_progress" | "resolved";
     assignmentReason: string;
     summary: string;
-    smsNotificationSent?: boolean;
     startedAt: number;
     endedAt: number;
     transcript: Array<{ role: string; content: string }>;
@@ -70,19 +69,6 @@ export function TicketDetail(props: {
             {selectedTicket.ticket.customerPhone}
           </DetailRow>
         ) : null}
-        <DetailRow label="SMS notification">
-          {selectedTicket.ticket.smsNotificationSent === true ? (
-            <span className="inline-flex items-center gap-1.5 rounded-sm border-2 border-black bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">
-              Sent
-            </span>
-          ) : selectedTicket.ticket.smsNotificationSent === false ? (
-            <span className="inline-flex items-center gap-1.5 rounded-sm border-2 border-black bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
-              Not sent
-            </span>
-          ) : (
-            <span className="text-xs text-slate-400">N/A</span>
-          )}
-        </DetailRow>
         <DetailRow label="Call started">
           {formatTimestamp(selectedTicket.ticket.startedAt)}
         </DetailRow>

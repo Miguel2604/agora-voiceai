@@ -17,7 +17,6 @@ import type * as lib_assignAgent from "../lib/assignAgent.js";
 import type * as lib_classifyCall from "../lib/classifyCall.js";
 import type * as lib_constants from "../lib/constants.js";
 import type * as lib_demoData from "../lib/demoData.js";
-import type * as lib_smsNotification from "../lib/smsNotification.js";
 import type * as lib_validators from "../lib/validators.js";
 import type * as supportAgents from "../supportAgents.js";
 import type * as tickets from "../tickets.js";
@@ -38,7 +37,6 @@ declare const fullApi: ApiFromModules<{
   "lib/classifyCall": typeof lib_classifyCall;
   "lib/constants": typeof lib_constants;
   "lib/demoData": typeof lib_demoData;
-  "lib/smsNotification": typeof lib_smsNotification;
   "lib/validators": typeof lib_validators;
   supportAgents: typeof supportAgents;
   tickets: typeof tickets;

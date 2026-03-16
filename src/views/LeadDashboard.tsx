@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import {
@@ -27,7 +27,6 @@ export function LeadDashboard() {
 
   const endCallMutation = useMutation(api.calls.endCall);
   const updateStatus = useMutation(api.tickets.updateStatus);
-  const sendTicketSms = useAction(api.callActions.sendTicketSms);
 
   const leadDashboard = useQuery(api.tickets.leadDashboard, {});
   const supportAgents = useQuery(api.supportAgents.listAgents, {});
@@ -69,20 +68,6 @@ export function LeadDashboard() {
           ? `Ticket routed to ${result.assignedAgentName}.`
           : "Ticket created without an assigned agent.",
       );
-
-      // Fire-and-forget SMS acknowledgement for demo calls
-      if (result.customerPhone) {
-        void sendTicketSms({
-          ticketId: result.ticketId,
-          customerPhone: result.customerPhone,
-          customerName: result.customerName,
-          category: result.category,
-          agentName: result.assignedAgentName ?? undefined,
-          priority: result.priority,
-        }).catch((error: unknown) => {
-          console.warn("SMS notification failed:", error);
-        });
-      }
     } catch (error) {
       setErrorMessage(getErrorMessage(error));
     } finally {

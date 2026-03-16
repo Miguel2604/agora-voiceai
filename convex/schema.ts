@@ -47,7 +47,7 @@ export default defineSchema({
     assignmentReason: v.string(),
     status: ticketStatusValidator,
     isLegitimate: v.boolean(),
-    smsNotificationSent: v.optional(v.boolean()),
+
     startedAt: v.number(),
     endedAt: v.number(),
     createdAt: v.number(),

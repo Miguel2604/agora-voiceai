@@ -9,7 +9,6 @@ import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { api } from "./_generated/api";
 import { classifyWithLLM } from "./lib/aiClassification";
-import { sendTicketAcknowledgement } from "./lib/smsNotification";
 import type { Id } from "./_generated/dataModel";
 import type { TranscriptMessage } from "./lib/constants";
 
@@ -26,7 +25,6 @@ type ProcessCallEndResult = {
  * 2. Stop the Agora AI agent
  * 3. Classify with OpenRouter (falls back to keyword classifier if no key or on error)
  * 4. End the call and create a ticket via the endCall mutation
- * 5. Send SMS acknowledgement to the customer
  *
  * This is the action the browser calls when a real voice call ends.
  */
@@ -105,75 +103,11 @@ export const processCallEnd = action({
       aiClassification,
     });
 
-    // 5. Send SMS acknowledgement to the customer
-    const smsApiKey = process.env.SMSAPI_KEY;
-    try {
-      const smsResult = await sendTicketAcknowledgement({
-        customerPhone: mutationResult.customerPhone ?? undefined,
-        customerName: mutationResult.customerName,
-        ticketCategory: mutationResult.category,
-        agentName: mutationResult.assignedAgentName,
-        priority: mutationResult.priority,
-        apiKey: smsApiKey,
-      });
-
-      await ctx.runMutation(api.tickets.markSmsSent, {
-        ticketId: mutationResult.ticketId,
-        sent: smsResult.sent,
-      });
-
-      if (!smsResult.sent) {
-        console.warn("SMS acknowledgement not sent:", smsResult.reason);
-      }
-    } catch (error) {
-      console.warn("SMS acknowledgement failed:", error);
-    }
-
     return {
       callId: mutationResult.callId,
       ticketId: mutationResult.ticketId,
       assignmentReason: mutationResult.assignmentReason,
       assignedAgentName: mutationResult.assignedAgentName,
     };
-  },
-});
-
-/**
- * Standalone action to send SMS acknowledgement for a ticket.
- *
- * Used by the demo-call flow (which calls endCall directly as a mutation
- * and then triggers this action to handle the SMS side-effect).
- */
-export const sendTicketSms = action({
-  args: {
-    ticketId: v.id("tickets"),
-    customerPhone: v.optional(v.string()),
-    customerName: v.string(),
-    category: v.string(),
-    agentName: v.optional(v.string()),
-    priority: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const smsApiKey = process.env.SMSAPI_KEY;
-
-    const smsResult = await sendTicketAcknowledgement({
-      customerPhone: args.customerPhone,
-      customerName: args.customerName,
-      ticketCategory: args.category,
-      agentName: args.agentName ?? null,
-      priority: args.priority,
-      apiKey: smsApiKey,
-    });
-
-    await ctx.runMutation(api.tickets.markSmsSent, {
-      ticketId: args.ticketId,
-      sent: smsResult.sent,
-    });
-
-    if (!smsResult.sent) {
-      console.warn("SMS acknowledgement not sent:", smsResult.reason);
-    }
-
-    return smsResult;
   },
 });
