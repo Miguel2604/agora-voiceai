@@ -88,8 +88,9 @@ export function AgentView(props: { slug: string }) {
   }
 
   return (
-    <section className="grid gap-4">
-      <div className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5">
+    <div className="grid gap-4 xl:grid-cols-[350px_1fr] 2xl:grid-cols-[450px_1fr] xl:items-start">
+      <div className="flex flex-col gap-4">
+      <div className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5 flex flex-col h-[calc(100vh-2rem)] xl:h-auto overflow-hidden">
         <SectionHeading
           eyebrow={`Agent: ${dashboard.agent.name}`}
           title={`${dashboard.agent.name}'s Dashboard`}
@@ -131,8 +132,9 @@ export function AgentView(props: { slug: string }) {
           )}
         </div>
       </div>
+      </div>
 
-      <div className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5">
+      <div className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5 xl:sticky xl:top-4 flex flex-col h-[calc(100vh-2rem)] xl:h-auto overflow-hidden">
         <SectionHeading eyebrow="Ticket detail" title="Selected Ticket" />
 
         <div className="mt-4">
@@ -156,6 +158,6 @@ export function AgentView(props: { slug: string }) {
           {errorMessage}
         </div>
       ) : null}
-    </section>
+    </div>
   );
 }

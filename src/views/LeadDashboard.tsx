@@ -94,7 +94,8 @@ export function LeadDashboard() {
   }
 
   return (
-    <section className="grid gap-4">
+    <div className="grid gap-4 xl:grid-cols-[1fr_550px] 2xl:grid-cols-[1fr_650px] xl:items-start">
+      <div className="flex flex-col gap-4">
       <header className="overflow-hidden rounded-md border-2 border-black bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
         <div className="grid gap-4 px-5 py-5 lg:grid-cols-[1.5fr_1fr] lg:px-6">
           <div className="space-y-3">
@@ -192,8 +193,9 @@ export function LeadDashboard() {
           )}
         </div>
       </div>
+      </div>
 
-      <div className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5">
+      <div className="rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5 xl:sticky xl:top-4 flex flex-col h-[calc(100vh-2rem)] xl:h-auto overflow-hidden">
         <SectionHeading eyebrow="Ticket detail" title="Selected Ticket" />
 
         <div className="mt-4">
@@ -217,6 +219,6 @@ export function LeadDashboard() {
           {errorMessage}
         </div>
       ) : null}
-    </section>
+    </div>
   );
 }

@@ -4,7 +4,7 @@
  * Manages the lifecycle of an Agora RTC session:
  * - Create client + local microphone track
  * - Join a channel with a token
- * - Subscribe to the remote AI agent's audio so the user can hear Nova
+ * - Subscribe to the remote AI agent's audio so the user can hear Neo
  * - Leave the channel and clean up resources
  */
 

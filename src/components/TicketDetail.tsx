@@ -78,22 +78,23 @@ export function TicketDetail(props: {
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-500">
             Update status
           </p>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             {(["open", "in_progress", "resolved"] as const).map((status) => (
-              <ActionButton
-                key={status}
-                busy={props.pendingAction === "updating"}
-                onClick={() =>
-                  void props.onStatusChange(selectedTicket.ticket._id, status)
-                }
-                tone={
-                  selectedTicket.ticket.status === status
-                    ? "primary"
-                    : "secondary"
-                }
-              >
-                {humanizeStatus(status)}
-              </ActionButton>
+              <div key={status} className="flex-1">
+                <ActionButton
+                  busy={props.pendingAction === "updating"}
+                  onClick={() =>
+                    void props.onStatusChange(selectedTicket.ticket._id, status)
+                  }
+                  tone={
+                    selectedTicket.ticket.status === status
+                      ? "primary"
+                      : "secondary"
+                  }
+                >
+                  {humanizeStatus(status)}
+                </ActionButton>
+              </div>
             ))}
           </div>
         </div>

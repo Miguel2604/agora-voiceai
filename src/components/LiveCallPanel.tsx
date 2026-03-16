@@ -12,13 +12,12 @@ export function LiveCallPanel(props: {
     <div className="grid gap-3 rounded-md border-2 border-black bg-slate-900 p-5 text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="relative flex h-3 w-3">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500" />
-          </span>
-          <p className="text-sm font-bold uppercase tracking-widest font-mono">
-            Live call with Nova
-          </p>
+          <div>
+            <span className="flex items-center gap-2 rounded-full border-2 border-[#2a6de1] bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-[#2a6de1]">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#2a6de1]" />
+              Live call with Neo
+            </span>
+          </div>
         </div>
         <p className="text-2xl font-black font-mono tabular-nums">
           {timeDisplay}

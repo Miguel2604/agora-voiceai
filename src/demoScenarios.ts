@@ -34,7 +34,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
       {
         role: "assistant",
         content:
-          "Hello! Thank you for calling Neosolve support. My name is Nova. How can I help you today?",
+          "Hello! Thank you for calling Neosolve support. My name is Neo. How can I help you today?",
       },
       {
         role: "customer",
@@ -72,7 +72,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
       {
         role: "assistant",
         content:
-          "Hello! Thank you for calling Neosolve support. My name is Nova. How can I help you today?",
+          "Hello! Thank you for calling Neosolve support. My name is Neo. How can I help you today?",
       },
       {
         role: "customer",
@@ -109,7 +109,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
       {
         role: "assistant",
         content:
-          "Hello! Thank you for calling Neosolve support. My name is Nova. How can I help you today?",
+          "Hello! Thank you for calling Neosolve support. My name is Neo. How can I help you today?",
       },
       {
         role: "customer",

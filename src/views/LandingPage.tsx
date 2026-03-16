@@ -171,7 +171,7 @@ export function LandingPage() {
       });
       setCallState("connected");
       setFeedback(
-        `Connected! Nova is greeting ${trimmedName}. Speak into your microphone.`,
+        `Connected! Neo is greeting ${trimmedName}. Speak into your microphone.`,
       );
     } catch (error) {
       setCallState("error");
@@ -262,8 +262,9 @@ export function LandingPage() {
   const isInCall = callState === "connected" || callState === "joining";
 
   return (
-    <section className="space-y-4 rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5">
-      <SectionHeading eyebrow="Call controls" title="Start a Support Call" />
+    <div className="grid gap-4 xl:grid-cols-[1fr_1.5fr] xl:items-start">
+      <section className="space-y-4 rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5 flex flex-col h-full">
+        <SectionHeading eyebrow="Call controls" title="Start a Support Call" />
 
       {/* Mode toggle */}
       <div className="grid grid-cols-2 gap-0 rounded-md border-2 border-black overflow-hidden">
@@ -350,6 +351,13 @@ export function LandingPage() {
           disabled={isInCall}
         />
       </label>
+      </section>
+
+      <section className="space-y-4 rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5 flex flex-col h-full">
+        <SectionHeading 
+          eyebrow={inputMode === "live" ? "Voice channel" : "Demo selection"} 
+          title={inputMode === "live" ? "Live Call Activity" : "Select Scenario"} 
+        />
 
       {/* ── Live call mode ──────────────────────────────── */}
       {inputMode === "live" && (
@@ -366,7 +374,7 @@ export function LandingPage() {
           {callState === "joining" ? (
             <div className="rounded-md border-2 border-black bg-[#f5ce4d] p-5 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
               <p className="text-lg font-black text-black animate-pulse">
-                Connecting to Nova...
+                Connecting to Neo...
               </p>
             </div>
           ) : null}
@@ -464,6 +472,7 @@ export function LandingPage() {
           {errorMessage}
         </div>
       ) : null}
-    </section>
+      </section>
+    </div>
   );
 }
