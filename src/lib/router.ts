@@ -32,6 +32,7 @@ export function useRoute(): Route {
   useEffect(() => {
     function onHashChange() {
       setRoute(parseHash(window.location.hash));
+      window.scrollTo(0, 0);
     }
 
     window.addEventListener("hashchange", onHashChange);

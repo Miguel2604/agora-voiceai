@@ -26,6 +26,13 @@ export function TicketQueue(props: {
     return <EmptyState message="No tickets yet." />;
   }
 
+  const priorityBorder: Record<string, string> = {
+    urgent: "border-l-red-500",
+    high: "border-l-orange-500",
+    medium: "border-l-yellow-500",
+    low: "border-l-slate-400",
+  };
+
   return (
     <>
       {props.tickets.map((ticket) => {
@@ -36,7 +43,8 @@ export function TicketQueue(props: {
             type="button"
             onClick={() => props.onSelectTicket(ticket._id)}
             className={[
-              "grid gap-2 rounded-md border-2 px-4 py-3 text-left transition-all",
+              "grid gap-2 rounded-md border-2 border-l-4 px-4 py-3 text-left transition-all",
+              priorityBorder[ticket.priority] ?? "border-l-slate-400",
               isSelected
                 ? "border-black bg-[#f5ce4d] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
                 : "border-black bg-white hover:bg-slate-50 shadow-none hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]",

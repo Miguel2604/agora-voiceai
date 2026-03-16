@@ -36,6 +36,16 @@ export function TicketDetail(props: {
 }) {
   const { selectedTicket } = props;
 
+  if (selectedTicket === undefined) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <p className="text-sm text-slate-500 animate-pulse">
+          Loading ticket...
+        </p>
+      </div>
+    );
+  }
+
   if (!selectedTicket) {
     return <EmptyState message="Select a ticket to view details." />;
   }
@@ -104,26 +114,28 @@ export function TicketDetail(props: {
         <p className="text-sm font-bold uppercase tracking-widest text-[#2a6de1] font-mono">
           Transcript
         </p>
-        {selectedTicket.ticket.transcript.length > 0 ? (
-          selectedTicket.ticket.transcript.map((message, index) => (
-            <div
-              key={`${message.role}-${index}`}
-              className={[
-                "max-w-[92%] rounded-md px-4 py-3 text-sm leading-6 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
-                message.role === "customer"
-                  ? "justify-self-start bg-white text-black"
-                  : "justify-self-end bg-[#2a6de1] text-white",
-              ].join(" ")}
-            >
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-widest opacity-80 font-mono">
-                {message.role}
-              </p>
-              <p className="font-medium">{message.content}</p>
-            </div>
-          ))
-        ) : (
-          <EmptyState message="No transcript saved for this ticket." />
-        )}
+        <div className="max-h-96 overflow-y-auto grid gap-2">
+          {selectedTicket.ticket.transcript.length > 0 ? (
+            selectedTicket.ticket.transcript.map((message, index) => (
+              <div
+                key={`${message.role}-${index}`}
+                className={[
+                  "max-w-[92%] rounded-md px-4 py-3 text-sm leading-6 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]",
+                  message.role === "customer"
+                    ? "justify-self-start bg-white text-black"
+                    : "justify-self-end bg-[#2a6de1] text-white",
+                ].join(" ")}
+              >
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-widest opacity-80 font-mono">
+                  {message.role}
+                </p>
+                <p className="font-medium">{message.content}</p>
+              </div>
+            ))
+          ) : (
+            <EmptyState message="No transcript saved for this ticket." />
+          )}
+        </div>
       </div>
     </div>
   );

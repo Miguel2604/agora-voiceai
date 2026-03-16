@@ -118,7 +118,7 @@ export function EmptyState(props: { message: string; dark?: boolean }) {
   return (
     <div
       className={[
-        "rounded-md border-2 border-dashed px-4 py-6 text-sm font-bold font-mono",
+        "rounded-md border-2 border-dashed px-4 py-6 text-sm font-bold font-mono text-center",
         props.dark
           ? "border-slate-500 bg-slate-900 text-slate-300"
           : "border-black bg-slate-100 text-slate-500",
@@ -151,7 +151,7 @@ export function humanizeStatus(
 }
 
 export function humanizeToken(value: string): string {
-  return value.replace(/_/g, " ");
+  return value.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export function formatTimestamp(timestamp: number): string {

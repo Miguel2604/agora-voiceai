@@ -68,6 +68,19 @@ export function LandingPage() {
     });
   }, [ensureDemoReady]);
 
+  // Auto-dismiss feedback and error messages
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = setTimeout(() => setFeedback(null), 5000);
+    return () => clearTimeout(timer);
+  }, [feedback]);
+
+  useEffect(() => {
+    if (!errorMessage) return;
+    const timer = setTimeout(() => setErrorMessage(null), 8000);
+    return () => clearTimeout(timer);
+  }, [errorMessage]);
+
   // Call duration timer
   useEffect(() => {
     if (callState === "connected" && liveCall) {
@@ -192,6 +205,7 @@ export function LandingPage() {
 
   const handleEndLiveCall = useCallback(async () => {
     if (!liveCall) return;
+    if (!window.confirm("End this call?")) return;
 
     setCallState("leaving");
     setFeedback(null);
@@ -266,212 +280,214 @@ export function LandingPage() {
       <section className="space-y-4 rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5 flex flex-col h-full">
         <SectionHeading eyebrow="Call controls" title="Start a Support Call" />
 
-      {/* Mode toggle */}
-      <div className="grid grid-cols-2 gap-0 rounded-md border-2 border-black overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setInputMode("live")}
-          disabled={isInCall}
-          className={[
-            "px-4 py-3 text-sm font-bold uppercase tracking-widest transition-all border-r-2 border-black",
-            inputMode === "live"
-              ? "bg-[#2a6de1] text-white"
-              : "bg-white text-slate-600 hover:bg-slate-50",
-            isInCall ? "cursor-not-allowed opacity-60" : "",
-          ].join(" ")}
-        >
-          Live call
-        </button>
-        <button
-          type="button"
-          onClick={() => setInputMode("demo")}
-          disabled={isInCall}
-          className={[
-            "px-4 py-3 text-sm font-bold uppercase tracking-widest transition-all",
-            inputMode === "demo"
-              ? "bg-[#2a6de1] text-white"
-              : "bg-white text-slate-600 hover:bg-slate-50",
-            isInCall ? "cursor-not-allowed opacity-60" : "",
-          ].join(" ")}
-        >
-          Demo script
-        </button>
-      </div>
-
-      {/* Shared: customer name + admin buttons */}
-      <div className="grid gap-2 sm:grid-cols-3">
-        <ActionButton
-          busy={pendingAction === "seeding"}
-          onClick={() => void handleEnsureDemoReady()}
-          tone="secondary"
-        >
-          Seed agents
-        </ActionButton>
-        <ActionButton
-          busy={pendingAction === "resetting"}
-          onClick={() => void handleResetDemo()}
-          tone="secondary"
-        >
-          Reset demo
-        </ActionButton>
-        {inputMode === "demo" ? (
-          <ActionButton
-            busy={pendingAction === "starting"}
-            onClick={() => void handleStartDemoCall()}
+        {/* Mode toggle */}
+        <div className="grid grid-cols-2 gap-0 rounded-md border-2 border-black overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setInputMode("live")}
+            disabled={isInCall}
+            className={[
+              "px-4 py-3 text-sm font-bold uppercase tracking-widest transition-all border-r-2 border-black",
+              inputMode === "live"
+                ? "bg-[#2a6de1] text-white"
+                : "bg-white text-slate-600 hover:bg-slate-50",
+              isInCall ? "cursor-not-allowed opacity-60" : "",
+            ].join(" ")}
           >
-            Start call
+            Live call
+          </button>
+          <button
+            type="button"
+            onClick={() => setInputMode("demo")}
+            disabled={isInCall}
+            className={[
+              "px-4 py-3 text-sm font-bold uppercase tracking-widest transition-all",
+              inputMode === "demo"
+                ? "bg-[#2a6de1] text-white"
+                : "bg-white text-slate-600 hover:bg-slate-50",
+              isInCall ? "cursor-not-allowed opacity-60" : "",
+            ].join(" ")}
+          >
+            Demo script
+          </button>
+        </div>
+
+        {/* Shared: customer name + admin buttons */}
+        <div className="grid gap-2 sm:grid-cols-3">
+          <ActionButton
+            busy={pendingAction === "seeding"}
+            onClick={() => void handleEnsureDemoReady()}
+            tone="secondary"
+          >
+            Seed agents
           </ActionButton>
-        ) : (
-          <div /> /* spacer */
-        )}
-      </div>
+          <ActionButton
+            busy={pendingAction === "resetting"}
+            onClick={() => void handleResetDemo()}
+            tone="secondary"
+          >
+            Reset demo
+          </ActionButton>
+          {inputMode === "demo" ? (
+            <ActionButton
+              busy={pendingAction === "starting"}
+              onClick={() => void handleStartDemoCall()}
+            >
+              Start call
+            </ActionButton>
+          ) : (
+            <div /> /* spacer */
+          )}
+        </div>
 
-      <label className="grid gap-2 text-sm font-bold text-slate-900 font-mono uppercase tracking-tight">
-        Customer name
-        <input
-          className="rounded-md border-2 border-black bg-white px-4 py-3 text-base text-slate-900 outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-          value={customerName}
-          onChange={(event) => setCustomerName(event.target.value)}
-          placeholder="Enter customer name"
-          disabled={isInCall}
-        />
-      </label>
+        <label className="grid gap-2 text-sm font-bold text-slate-900 font-mono uppercase tracking-tight">
+          Customer name
+          <input
+            className="rounded-md border-2 border-black bg-white px-4 py-3 text-base text-slate-900 outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            value={customerName}
+            onChange={(event) => setCustomerName(event.target.value)}
+            placeholder="Enter customer name"
+            disabled={isInCall}
+          />
+        </label>
 
-      <label className="grid gap-2 text-sm font-bold text-slate-900 font-mono uppercase tracking-tight">
-        Phone number
-        <span className="text-[10px] font-medium text-slate-500 normal-case tracking-normal">
-          For SMS ticket acknowledgement (e.g. +639123456789)
-        </span>
-        <input
-          className="rounded-md border-2 border-black bg-white px-4 py-3 text-base text-slate-900 outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-          value={customerPhone}
-          onChange={(event) => setCustomerPhone(event.target.value)}
-          placeholder="+639XXXXXXXXX"
-          type="tel"
-          disabled={isInCall}
-        />
-      </label>
+        <label className="grid gap-2 text-sm font-bold text-slate-900 font-mono uppercase tracking-tight">
+          Phone number
+          <span className="text-[10px] font-medium text-slate-500 normal-case tracking-normal">
+            For SMS ticket acknowledgement (e.g. +639123456789)
+          </span>
+          <input
+            className="rounded-md border-2 border-black bg-white px-4 py-3 text-base text-slate-900 outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+            value={customerPhone}
+            onChange={(event) => setCustomerPhone(event.target.value)}
+            placeholder="+639XXXXXXXXX"
+            type="tel"
+            disabled={isInCall}
+          />
+        </label>
       </section>
 
       <section className="space-y-4 rounded-md border-2 border-black bg-white p-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] lg:p-5 flex flex-col h-full">
-        <SectionHeading 
-          eyebrow={inputMode === "live" ? "Voice channel" : "Demo selection"} 
-          title={inputMode === "live" ? "Live Call Activity" : "Select Scenario"} 
+        <SectionHeading
+          eyebrow={inputMode === "live" ? "Voice channel" : "Demo selection"}
+          title={
+            inputMode === "live" ? "Live Call Activity" : "Select Scenario"
+          }
         />
 
-      {/* ── Live call mode ──────────────────────────────── */}
-      {inputMode === "live" && (
-        <>
-          {callState === "idle" || callState === "error" ? (
-            <ActionButton
-              busy={false}
-              onClick={() => void handleStartLiveCall()}
-            >
-              Call now
-            </ActionButton>
-          ) : null}
+        {/* ── Live call mode ──────────────────────────────── */}
+        {inputMode === "live" && (
+          <>
+            {callState === "idle" || callState === "error" ? (
+              <ActionButton
+                busy={false}
+                onClick={() => void handleStartLiveCall()}
+              >
+                Call now
+              </ActionButton>
+            ) : null}
 
-          {callState === "joining" ? (
-            <div className="rounded-md border-2 border-black bg-[#f5ce4d] p-5 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <p className="text-lg font-black text-black animate-pulse">
-                Connecting to Neo...
-              </p>
-            </div>
-          ) : null}
-
-          {callState === "connected" ? (
-            <LiveCallPanel
-              duration={callDuration}
-              isMuted={isMuted}
-              onToggleMute={() => void handleToggleMute()}
-              onEndCall={() => void handleEndLiveCall()}
-            />
-          ) : null}
-
-          {callState === "leaving" ? (
-            <div className="rounded-md border-2 border-black bg-slate-900 p-5 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-              <p className="text-lg font-black text-white animate-pulse">
-                Processing call...
-              </p>
-              <p className="mt-1 text-sm font-medium text-slate-400">
-                Creating ticket and routing to a specialist.
-              </p>
-            </div>
-          ) : null}
-        </>
-      )}
-
-      {/* ── Demo script mode ───────────────────────────── */}
-      {inputMode === "demo" && (
-        <>
-          <div className="grid gap-2">
-            {DEMO_SCENARIOS.map((scenario) => {
-              const isSelected = scenario.id === selectedScenarioId;
-              return (
-                <button
-                  key={scenario.id}
-                  type="button"
-                  onClick={() => setSelectedScenarioId(scenario.id)}
-                  className={[
-                    "grid gap-2 rounded-md border-2 px-4 py-3 text-left transition-all group",
-                    isSelected
-                      ? "border-black bg-[#f5ce4d] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
-                      : "border-black bg-white hover:bg-slate-50 shadow-none hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]",
-                  ].join(" ")}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-base font-semibold text-slate-950">
-                        {scenario.title}
-                      </p>
-                      <p className="text-sm text-slate-600">
-                        {scenario.preview}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white">
-                      {humanizeToken(scenario.expectedCategory)}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-600">
-                    <Tag>{scenario.expectedAgent}</Tag>
-                    <Tag>{humanizePriority(scenario.expectedPriority)}</Tag>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="rounded-md border-2 border-black bg-white p-4 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[10px] uppercase font-bold uppercase tracking-widest text-[#2a6de1] font-mono">
-                  Selected script
+            {callState === "joining" ? (
+              <div className="rounded-md border-2 border-black bg-[#f5ce4d] p-5 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <p className="text-lg font-black text-black animate-pulse">
+                  Connecting to Neo...
                 </p>
-                <h2 className="mt-1 text-xl font-black">
-                  {selectedScenario.title}
-                </h2>
               </div>
-              <div className="rounded-sm border-2 border-black bg-[#2a6de1] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
-                Routes to {selectedScenario.expectedAgent}
-              </div>
-            </div>
-            <p className="mt-2 text-sm font-medium leading-6 text-slate-700">
-              {selectedScenario.notes}
-            </p>
-          </div>
-        </>
-      )}
+            ) : null}
 
-      {feedback ? (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-          {feedback}
-        </div>
-      ) : null}
-      {errorMessage ? (
-        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          {errorMessage}
-        </div>
-      ) : null}
+            {callState === "connected" ? (
+              <LiveCallPanel
+                duration={callDuration}
+                isMuted={isMuted}
+                onToggleMute={() => void handleToggleMute()}
+                onEndCall={() => void handleEndLiveCall()}
+              />
+            ) : null}
+
+            {callState === "leaving" ? (
+              <div className="rounded-md border-2 border-black bg-slate-900 p-5 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <p className="text-lg font-black text-white animate-pulse">
+                  Processing call...
+                </p>
+                <p className="mt-1 text-sm font-medium text-slate-400">
+                  Creating ticket and routing to a specialist.
+                </p>
+              </div>
+            ) : null}
+          </>
+        )}
+
+        {/* ── Demo script mode ───────────────────────────── */}
+        {inputMode === "demo" && (
+          <>
+            <div className="grid gap-2">
+              {DEMO_SCENARIOS.map((scenario) => {
+                const isSelected = scenario.id === selectedScenarioId;
+                return (
+                  <button
+                    key={scenario.id}
+                    type="button"
+                    onClick={() => setSelectedScenarioId(scenario.id)}
+                    className={[
+                      "grid gap-2 rounded-md border-2 px-4 py-3 text-left transition-all group",
+                      isSelected
+                        ? "border-black bg-[#f5ce4d] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
+                        : "border-black bg-white hover:bg-slate-50 shadow-none hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]",
+                    ].join(" ")}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p className="text-base font-semibold text-slate-950">
+                          {scenario.title}
+                        </p>
+                        <p className="text-sm text-slate-600">
+                          {scenario.preview}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white">
+                        {humanizeToken(scenario.expectedCategory)}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-2 text-xs font-medium text-slate-600">
+                      <Tag>{scenario.expectedAgent}</Tag>
+                      <Tag>{humanizePriority(scenario.expectedPriority)}</Tag>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="rounded-md border-2 border-black bg-white p-4 text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[10px] uppercase font-bold tracking-widest text-[#2a6de1] font-mono">
+                    Selected script
+                  </p>
+                  <h2 className="mt-1 text-xl font-black">
+                    {selectedScenario.title}
+                  </h2>
+                </div>
+                <div className="rounded-sm border-2 border-black bg-[#2a6de1] px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-white">
+                  Routes to {selectedScenario.expectedAgent}
+                </div>
+              </div>
+              <p className="mt-2 text-sm font-medium leading-6 text-slate-700">
+                {selectedScenario.notes}
+              </p>
+            </div>
+          </>
+        )}
+
+        {feedback ? (
+          <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            {feedback}
+          </div>
+        ) : null}
+        {errorMessage ? (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {errorMessage}
+          </div>
+        ) : null}
       </section>
     </div>
   );
